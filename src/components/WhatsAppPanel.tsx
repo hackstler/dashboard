@@ -5,7 +5,8 @@ import {
   disconnectWhatsapp,
 } from "../api/channels";
 import type { WhatsAppStatus } from "../api/channels";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import QRCode from "qrcode";
 
 export function WhatsAppPanel() {
   const {
@@ -85,8 +86,16 @@ function ConnectedState({
 
 function QrState() {
   const { data: qrData } = usePolling(() => getWhatsappQr(), 3000);
+  const [qrImage, setQrImage] = useState<string | null>(null);
 
-  if (!qrData) {
+  useEffect(() => {
+    if (!qrData) return;
+    QRCode.toDataURL(qrData, { width: 256, margin: 2 })
+      .then(setQrImage)
+      .catch(() => setQrImage(null));
+  }, [qrData]);
+
+  if (!qrData || !qrImage) {
     return (
       <p className="text-text-muted font-mono text-sm animate-pulse">
         Waiting for QR code...
@@ -97,15 +106,7 @@ function QrState() {
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="p-4 bg-white rounded">
-        <img
-          src={
-            qrData.startsWith("data:")
-              ? qrData
-              : `data:image/png;base64,${qrData}`
-          }
-          alt="WhatsApp QR Code"
-          className="w-64 h-64"
-        />
+        <img src={qrImage} alt="WhatsApp QR Code" className="w-64 h-64" />
       </div>
       <p className="text-text-muted text-xs text-center max-w-xs">
         Scan this QR code with WhatsApp on your phone to connect.
