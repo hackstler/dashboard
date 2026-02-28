@@ -7,8 +7,22 @@ import {
 import type { WhatsAppStatus } from "../api/channels";
 import { useState, useEffect } from "react";
 import QRCode from "qrcode";
+import { useApp } from "../context/AppContext";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "./ui/Card";
+import { Badge } from "./ui/Badge";
+import { Button } from "./ui/Button";
+import { Skeleton } from "./ui/Skeleton";
+import { EmptyState } from "./ui/EmptyState";
+import { MessageCircleIcon } from "./ui/Icons";
 
 export function WhatsAppPanel() {
+  const { addToast } = useApp();
   const {
     data: status,
     loading,
@@ -20,44 +34,86 @@ export function WhatsAppPanel() {
     setDisconnecting(true);
     try {
       await disconnectWhatsapp();
+      addToast("WhatsApp disconnected", "success");
       refetch();
+    } catch {
+      addToast("Failed to disconnect", "error");
     } finally {
       setDisconnecting(false);
     }
   };
 
-  if (loading && !status) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-text-muted font-mono text-sm tracking-wider animate-pulse">
-          Loading...
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="text-xl font-semibold text-text-bright">WhatsApp</h1>
+        <p className="text-sm text-text-muted mt-1">
+          Manage your WhatsApp channel connection.
         </p>
       </div>
-    );
-  }
 
-  return (
-    <div className="flex flex-col items-center justify-center h-full gap-6 p-8">
-      <h2 className="font-mono text-xs tracking-widest text-text-muted uppercase">
-        WhatsApp
-      </h2>
+      <Card className="max-w-lg">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageCircleIcon size={16} className="text-text-muted" />
+              <CardTitle>Channel Status</CardTitle>
+            </div>
+            {loading && !status ? (
+              <Skeleton className="h-5 w-24" />
+            ) : (
+              <Badge
+                variant={
+                  status?.status === "connected"
+                    ? "success"
+                    : status?.status === "qr"
+                      ? "warning"
+                      : "default"
+                }
+                dot
+              >
+                {status?.status === "connected"
+                  ? "Connected"
+                  : status?.status === "qr"
+                    ? "Awaiting scan"
+                    : "Disconnected"}
+              </Badge>
+            )}
+          </div>
+          <CardDescription>
+            Connect WhatsApp to receive and send messages through the agent.
+          </CardDescription>
+        </CardHeader>
 
-      {status?.status === "connected" && (
-        <ConnectedState
-          phone={status.phone}
-          onDisconnect={handleDisconnect}
-          disconnecting={disconnecting}
-        />
-      )}
-
-      {status?.status === "qr" && <QrState />}
-
-      {(!status || status.status === "disconnected") && <DisconnectedState />}
+        <CardContent>
+          {loading && !status ? (
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-10 w-32 mt-2" />
+            </div>
+          ) : status?.status === "connected" ? (
+            <ConnectedContent
+              phone={status.phone}
+              onDisconnect={handleDisconnect}
+              disconnecting={disconnecting}
+            />
+          ) : status?.status === "qr" ? (
+            <QrContent />
+          ) : (
+            <EmptyState
+              icon={<MessageCircleIcon size={40} />}
+              title="Not connected"
+              description="The WhatsApp worker is not running. Start the worker to generate a QR code for connection."
+            />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-function ConnectedState({
+function ConnectedContent({
   phone,
   onDisconnect,
   disconnecting,
@@ -67,24 +123,33 @@ function ConnectedState({
   disconnecting: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-green" />
-        <span className="text-text-bright text-sm">Connected</span>
+    <div className="space-y-4">
+      <div className="flex items-center gap-4 p-3 bg-green-muted rounded-[var(--radius-md)]">
+        <div className="w-10 h-10 rounded-full bg-green/20 flex items-center justify-center">
+          <MessageCircleIcon size={20} className="text-green" />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-text-bright">
+            WhatsApp Connected
+          </p>
+          {phone && (
+            <p className="text-xs text-text-muted font-mono">{phone}</p>
+          )}
+        </div>
       </div>
-      {phone && <p className="font-mono text-sm text-text-muted">{phone}</p>}
-      <button
+      <Button
+        variant="danger"
+        size="sm"
         onClick={onDisconnect}
-        disabled={disconnecting}
-        className="px-4 py-2 text-xs font-mono tracking-wider text-red border border-border hover:border-border-hi transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        loading={disconnecting}
       >
-        {disconnecting ? "Disconnecting..." : "Disconnect"}
-      </button>
+        Disconnect
+      </Button>
     </div>
   );
 }
 
-function QrState() {
+function QrContent() {
   const { data: qrData } = usePolling(() => getWhatsappQr(), 3000);
   const [qrImage, setQrImage] = useState<string | null>(null);
 
@@ -97,35 +162,26 @@ function QrState() {
 
   if (!qrData || !qrImage) {
     return (
-      <p className="text-text-muted font-mono text-sm animate-pulse">
-        Waiting for QR code...
-      </p>
+      <div className="flex flex-col items-center py-8">
+        <Skeleton className="w-64 h-64" />
+        <p className="text-xs text-text-muted mt-4 animate-pulse">
+          Generating QR code...
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="p-4 bg-white rounded">
-        <img src={qrImage} alt="WhatsApp QR Code" className="w-64 h-64" />
+      <div className="p-3 bg-white rounded-[var(--radius-lg)]">
+        <img src={qrImage} alt="WhatsApp QR Code" className="w-56 h-56" />
       </div>
-      <p className="text-text-muted text-xs text-center max-w-xs">
-        Scan this QR code with WhatsApp on your phone to connect.
-      </p>
-    </div>
-  );
-}
-
-function DisconnectedState() {
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-text-dim" />
-        <span className="text-text-muted text-sm">Disconnected</span>
+      <div className="text-center">
+        <p className="text-sm text-text-muted">Scan with WhatsApp</p>
+        <p className="text-xs text-text-dim mt-1">
+          Open WhatsApp → Settings → Linked Devices → Link a Device
+        </p>
       </div>
-      <p className="text-text-dim text-xs text-center max-w-xs font-mono">
-        The WhatsApp worker is not running. Start the worker to generate a QR
-        code.
-      </p>
     </div>
   );
 }

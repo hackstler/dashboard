@@ -1,0 +1,104 @@
+import { useState, useRef, useCallback } from "react";
+import type { DragEvent } from "react";
+import { UploadIcon } from "./Icons";
+
+interface FileDropzoneProps {
+  onFiles: (files: File[]) => void;
+  accept?: string;
+  maxSizeMB?: number;
+  multiple?: boolean;
+}
+
+export function FileDropzone({
+  onFiles,
+  accept,
+  maxSizeMB = 10,
+  multiple = true,
+}: FileDropzoneProps) {
+  const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const validateAndEmit = useCallback(
+    (files: FileList | null) => {
+      if (!files || files.length === 0) return;
+      setError(null);
+      const maxBytes = maxSizeMB * 1024 * 1024;
+      const valid: File[] = [];
+
+      for (const file of Array.from(files)) {
+        if (file.size > maxBytes) {
+          setError(`${file.name} exceeds ${maxSizeMB}MB limit`);
+          return;
+        }
+        valid.push(file);
+      }
+      onFiles(valid);
+    },
+    [onFiles, maxSizeMB]
+  );
+
+  const handleDrag = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDragIn = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(true);
+  }, []);
+
+  const handleDragOut = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragging(false);
+      validateAndEmit(e.dataTransfer.files);
+    },
+    [validateAndEmit]
+  );
+
+  return (
+    <div>
+      <div
+        onDragEnter={handleDragIn}
+        onDragLeave={handleDragOut}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+        onClick={() => inputRef.current?.click()}
+        className={`border-2 border-dashed rounded-[var(--radius-lg)] p-8 flex flex-col items-center gap-3 cursor-pointer transition-colors ${
+          dragging
+            ? "border-accent bg-accent-dim"
+            : "border-border hover:border-border-hi hover:bg-surface-hover"
+        }`}
+      >
+        <UploadIcon size={32} className="text-text-dim" />
+        <div className="text-center">
+          <p className="text-sm text-text-muted">
+            <span className="text-accent font-medium">Click to upload</span> or
+            drag and drop
+          </p>
+          <p className="text-xs text-text-dim mt-1">
+            Max {maxSizeMB}MB per file
+          </p>
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          onChange={(e) => validateAndEmit(e.target.files)}
+          className="hidden"
+        />
+      </div>
+      {error && <p className="text-xs text-red mt-2">{error}</p>}
+    </div>
+  );
+}

@@ -1,3 +1,5 @@
+import type { User } from "../types";
+
 const BASE_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3000";
 
 export interface LoginResponse {
@@ -25,19 +27,25 @@ export async function login(
   return data;
 }
 
-export async function getMe(): Promise<{
-  id: string;
-  username: string;
-  orgId: string;
-} | null> {
+export async function getMe(): Promise<User | null> {
   const token = localStorage.getItem("auth_token");
   if (!token) return null;
   const res = await fetch(`${BASE_URL}/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) return null;
-  const data = (await res.json()) as { userId: string; username: string; orgId: string };
-  return { id: data.userId, username: data.username, orgId: data.orgId };
+  const data = (await res.json()) as {
+    userId: string;
+    username: string;
+    orgId: string;
+    role?: string;
+  };
+  return {
+    id: data.userId,
+    username: data.username,
+    orgId: data.orgId,
+    role: (data.role === "admin" ? "admin" : "user") as User["role"],
+  };
 }
 
 export function logout(): void {

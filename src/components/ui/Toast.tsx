@@ -1,0 +1,46 @@
+import type { Toast as ToastType } from "../../hooks/useToast";
+import { CheckCircleIcon, AlertCircleIcon, InfoIcon, XIcon } from "./Icons";
+
+interface ToastContainerProps {
+  toasts: ToastType[];
+  onRemove: (id: string) => void;
+}
+
+const iconMap = {
+  success: CheckCircleIcon,
+  error: AlertCircleIcon,
+  info: InfoIcon,
+};
+
+const colorMap = {
+  success: "border-green/30 text-green",
+  error: "border-red/30 text-red",
+  info: "border-accent/30 text-accent",
+};
+
+export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
+  if (toasts.length === 0) return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+      {toasts.map((toast) => {
+        const IconComp = iconMap[toast.type];
+        return (
+          <div
+            key={toast.id}
+            className={`flex items-center gap-3 px-4 py-3 bg-surface border rounded-[var(--radius-md)] shadow-[var(--shadow-card)] animate-fade-in ${colorMap[toast.type]}`}
+          >
+            <IconComp size={16} className="shrink-0" />
+            <p className="text-xs text-text flex-1">{toast.message}</p>
+            <button
+              onClick={() => onRemove(toast.id)}
+              className="text-text-dim hover:text-text-muted transition-colors cursor-pointer shrink-0"
+            >
+              <XIcon size={14} />
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
