@@ -37,7 +37,7 @@ function AppContent() {
 
   return (
     <Layout onLogout={handleLogout}>
-      <div className="animate-fade-in" key={activeView}>
+      <div className="animate-fade-in-up" key={activeView}>
         {activeView === "overview" && <Overview />}
         {activeView === "whatsapp" && <WhatsAppPanel />}
         {activeView === "knowledge-upload" && <KnowledgeUpload />}

@@ -45,18 +45,20 @@ export function WhatsAppPanel() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold text-text-bright">WhatsApp</h1>
+      <div className="mb-8 animate-fade-in-up">
+        <h1 className="text-2xl font-semibold gradient-text">WhatsApp</h1>
         <p className="text-sm text-text-muted mt-1">
           Manage your WhatsApp channel connection.
         </p>
       </div>
 
-      <Card className="max-w-lg">
+      <Card className="max-w-lg gradient-border animate-fade-in-up stagger-1">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <MessageCircleIcon size={16} className="text-text-muted" />
+              <div className="w-7 h-7 rounded-[var(--radius-md)] bg-green-muted flex items-center justify-center">
+                <MessageCircleIcon size={14} className="text-green" />
+              </div>
               <CardTitle>Channel Status</CardTitle>
             </div>
             {loading && !status ? (
@@ -71,6 +73,7 @@ export function WhatsAppPanel() {
                       : "default"
                 }
                 dot
+                pulse={status?.status === "connected"}
               >
                 {status?.status === "connected"
                   ? "Connected"
@@ -123,9 +126,9 @@ function ConnectedContent({
   disconnecting: boolean;
 }) {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4 p-3 bg-green-muted rounded-[var(--radius-md)]">
-        <div className="w-10 h-10 rounded-full bg-green/20 flex items-center justify-center">
+    <div className="space-y-4 animate-fade-in">
+      <div className="flex items-center gap-4 p-3 bg-green-muted rounded-[var(--radius-md)] border border-green/10">
+        <div className="w-10 h-10 rounded-full bg-green/20 flex items-center justify-center shadow-[var(--shadow-glow-green)]">
           <MessageCircleIcon size={20} className="text-green" />
         </div>
         <div>
@@ -163,7 +166,7 @@ function QrContent() {
   if (!qrData || !qrImage) {
     return (
       <div className="flex flex-col items-center py-8">
-        <Skeleton className="w-64 h-64" />
+        <Skeleton className="w-56 h-56 rounded-[var(--radius-lg)]" />
         <p className="text-xs text-text-muted mt-4 animate-pulse">
           Generating QR code...
         </p>
@@ -172,8 +175,8 @@ function QrContent() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="p-3 bg-white rounded-[var(--radius-lg)]">
+    <div className="flex flex-col items-center gap-4 animate-scale-in">
+      <div className="p-3 bg-white rounded-[var(--radius-lg)] shadow-[0_0_40px_rgba(255,255,255,0.05)]">
         <img src={qrImage} alt="WhatsApp QR Code" className="w-56 h-56" />
       </div>
       <div className="text-center">

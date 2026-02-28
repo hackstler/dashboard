@@ -73,13 +73,15 @@ export function FileDropzone({
         onDragOver={handleDrag}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`border-2 border-dashed rounded-[var(--radius-lg)] p-8 flex flex-col items-center gap-3 cursor-pointer transition-colors ${
+        className={`border-2 border-dashed rounded-[var(--radius-lg)] p-8 flex flex-col items-center gap-3 cursor-pointer transition-all duration-300 ${
           dragging
-            ? "border-accent bg-accent-dim"
+            ? "border-accent bg-accent-dim scale-[1.01] shadow-[var(--shadow-glow-accent)]"
             : "border-border hover:border-border-hi hover:bg-surface-hover"
         }`}
       >
-        <UploadIcon size={32} className="text-text-dim" />
+        <div className={`transition-transform duration-300 ${dragging ? "scale-110 -translate-y-1" : ""}`}>
+          <UploadIcon size={32} className={`transition-colors duration-300 ${dragging ? "text-accent" : "text-text-dim"}`} />
+        </div>
         <div className="text-center">
           <p className="text-sm text-text-muted">
             <span className="text-accent font-medium">Click to upload</span> or

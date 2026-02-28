@@ -5,6 +5,7 @@ type BadgeVariant = "default" | "success" | "warning" | "error" | "info";
 interface BadgeProps {
   variant?: BadgeVariant;
   dot?: boolean;
+  pulse?: boolean;
   children: ReactNode;
   className?: string;
 }
@@ -28,6 +29,7 @@ const dotColors: Record<BadgeVariant, string> = {
 export function Badge({
   variant = "default",
   dot = false,
+  pulse = false,
   children,
   className = "",
 }: BadgeProps) {
@@ -37,7 +39,9 @@ export function Badge({
     >
       {dot && (
         <span
-          className={`w-1.5 h-1.5 rounded-full ${dotColors[variant]}`}
+          className={`w-1.5 h-1.5 rounded-full ${dotColors[variant]} ${
+            pulse ? "pulse-dot" : ""
+          }`}
         />
       )}
       {children}

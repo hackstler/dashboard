@@ -2,22 +2,25 @@ import type { ReactNode, HTMLAttributes } from "react";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
+  glow?: boolean;
+  gradient?: boolean;
   children: ReactNode;
 }
 
 export function Card({
   hover = false,
+  glow = false,
+  gradient = false,
   children,
   className = "",
   ...props
 }: CardProps) {
+  const interactiveClass = hover || glow ? "glow-card" : "";
+  const gradientClass = gradient ? "gradient-border" : "";
+
   return (
     <div
-      className={`bg-surface border border-border rounded-[var(--radius-lg)] shadow-[var(--shadow-card)] ${
-        hover
-          ? "transition-shadow hover:shadow-[var(--shadow-card-hover)] hover:border-border-hi"
-          : ""
-      } ${className}`}
+      className={`bg-surface border border-border rounded-[var(--radius-lg)] shadow-[var(--shadow-card)] ${interactiveClass} ${gradientClass} ${className}`}
       {...props}
     >
       {children}

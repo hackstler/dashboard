@@ -60,18 +60,14 @@ export function KnowledgeList() {
 
   const fetchDocs = useCallback(async () => {
     try {
-      const filters: { orgId?: string; contentType?: string; search?: string } =
-        {};
-      // Non-admin users only see their org's documents
-      if (!isAdmin && user?.orgId) {
-        filters.orgId = user.orgId;
-      }
+      const filters: { contentType?: string; search?: string } = {};
       if (filterType !== "all") {
         filters.contentType = filterType;
       }
       if (search.trim()) {
         filters.search = search.trim();
       }
+      // orgId filtering is enforced server-side from the JWT
       const data = await listDocuments(filters);
       setDocs(data);
     } catch {
@@ -79,7 +75,7 @@ export function KnowledgeList() {
     } finally {
       setLoading(false);
     }
-  }, [isAdmin, user?.orgId, filterType, search, addToast]);
+  }, [filterType, search, addToast]);
 
   useEffect(() => {
     setLoading(true);
@@ -103,15 +99,13 @@ export function KnowledgeList() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8 animate-fade-in-up">
         <div>
-          <h1 className="text-xl font-semibold text-text-bright">
+          <h1 className="text-2xl font-semibold gradient-text">
             Knowledge Base
           </h1>
           <p className="text-sm text-text-muted mt-1">
-            {isAdmin
-              ? "All indexed documents across organizations."
-              : "Manage your indexed documents."}
+            Manage your indexed documents.
           </p>
         </div>
         <Button
@@ -124,7 +118,7 @@ export function KnowledgeList() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-6">
+      <div className="flex flex-wrap items-center gap-3 mb-6 animate-fade-in-up stagger-1">
         <Input
           placeholder="Search by title..."
           value={search}
@@ -190,12 +184,13 @@ export function KnowledgeList() {
         </Card>
       ) : (
         <div className="space-y-2">
-          {docs.map((doc) => {
+          {docs.map((doc, i) => {
             const IconComp = typeIcons[doc.contentType] ?? FileTextIcon;
             return (
               <div
                 key={doc.id}
-                className="flex items-center gap-4 px-4 py-3 bg-surface border border-border rounded-[var(--radius-lg)] hover:border-border-hi transition-colors"
+                className="flex items-center gap-4 px-4 py-3 bg-surface border border-border rounded-[var(--radius-lg)] glow-card animate-fade-in-up"
+                style={{ animationDelay: `${Math.min(i * 0.04, 0.4)}s` }}
               >
                 <div className="w-8 h-8 rounded-[var(--radius-md)] bg-surface-hi flex items-center justify-center shrink-0">
                   <IconComp size={16} className="text-text-muted" />
@@ -235,7 +230,7 @@ export function KnowledgeList() {
                 </Badge>
                 <button
                   onClick={() => setDeleteTarget(doc)}
-                  className="text-text-dim hover:text-red transition-colors cursor-pointer p-1"
+                  className="btn-press text-text-dim hover:text-red transition-all cursor-pointer p-1.5 rounded-[var(--radius-sm)] hover:bg-red-muted"
                   title="Delete"
                 >
                   <TrashIcon size={16} />

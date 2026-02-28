@@ -13,9 +13,15 @@ const iconMap = {
 };
 
 const colorMap = {
-  success: "border-green/30 text-green",
-  error: "border-red/30 text-red",
-  info: "border-accent/30 text-accent",
+  success: "border-green/20 shadow-[0_0_20px_rgba(34,197,94,0.08)]",
+  error: "border-red/20 shadow-[0_0_20px_rgba(239,68,68,0.08)]",
+  info: "border-accent/20 shadow-[0_0_20px_rgba(59,130,246,0.08)]",
+};
+
+const iconColorMap = {
+  success: "text-green",
+  error: "text-red",
+  info: "text-accent",
 };
 
 export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
@@ -28,9 +34,9 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
         return (
           <div
             key={toast.id}
-            className={`flex items-center gap-3 px-4 py-3 bg-surface border rounded-[var(--radius-md)] shadow-[var(--shadow-card)] animate-fade-in ${colorMap[toast.type]}`}
+            className={`flex items-center gap-3 px-4 py-3 glass border rounded-[var(--radius-md)] animate-toast-in ${colorMap[toast.type]}`}
           >
-            <IconComp size={16} className="shrink-0" />
+            <IconComp size={16} className={`shrink-0 ${iconColorMap[toast.type]}`} />
             <p className="text-xs text-text flex-1">{toast.message}</p>
             <button
               onClick={() => onRemove(toast.id)}

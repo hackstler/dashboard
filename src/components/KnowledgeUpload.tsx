@@ -29,8 +29,8 @@ export function KnowledgeUpload() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold text-text-bright">
+      <div className="mb-8 animate-fade-in-up">
+        <h1 className="text-2xl font-semibold gradient-text">
           Upload Content
         </h1>
         <p className="text-sm text-text-muted mt-1">
@@ -38,10 +38,12 @@ export function KnowledgeUpload() {
         </p>
       </div>
 
-      <Card className="max-w-2xl">
+      <Card className="max-w-2xl gradient-border animate-fade-in-up stagger-1">
         <CardHeader>
           <div className="flex items-center gap-2 mb-3">
-            <UploadIcon size={16} className="text-text-muted" />
+            <div className="w-7 h-7 rounded-[var(--radius-md)] bg-accent-dim flex items-center justify-center">
+              <UploadIcon size={14} className="text-accent" />
+            </div>
             <CardTitle>New Source</CardTitle>
           </div>
           <Tabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} />
@@ -126,7 +128,7 @@ function FileUploadTab({
           {files.map((file, i) => (
             <div
               key={`${file.name}-${i}`}
-              className="flex items-center gap-3 px-3 py-2 bg-surface-hi rounded-[var(--radius-md)]"
+              className="flex items-center gap-3 px-3 py-2 bg-surface-hi rounded-[var(--radius-md)] animate-fade-in"
             >
               <FileTextIcon size={16} className="text-text-muted shrink-0" />
               <span className="text-sm text-text truncate flex-1">

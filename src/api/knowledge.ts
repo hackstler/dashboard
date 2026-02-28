@@ -8,16 +8,14 @@ function authHeaders(): HeadersInit {
 }
 
 /**
- * List documents. Optionally filter by orgId, contentType, or title search.
- * GET /documents?orgId=xxx&contentType=pdf&search=term
+ * List documents for the authenticated user's org.
+ * GET /documents?contentType=pdf&search=term
  */
 export async function listDocuments(filters?: {
-  orgId?: string;
   contentType?: string;
   search?: string;
 }): Promise<DocumentSource[]> {
   const params = new URLSearchParams();
-  if (filters?.orgId) params.set("orgId", filters.orgId);
   if (filters?.contentType) params.set("contentType", filters.contentType);
   if (filters?.search) params.set("search", filters.search);
   const qs = params.toString();

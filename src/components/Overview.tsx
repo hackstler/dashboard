@@ -1,5 +1,6 @@
 import { useApp } from "../context/AppContext";
 import { usePolling } from "../hooks/usePolling";
+import { useAnimatedCounter } from "../hooks/useAnimatedCounter";
 import { getWhatsappStatus } from "../api/channels";
 import type { WhatsAppStatus } from "../api/channels";
 import { listDocuments } from "../api/knowledge";
@@ -42,31 +43,42 @@ export function Overview() {
         ? "Awaiting QR"
         : "Disconnected";
 
+  const totalDocs = docs?.length ?? 0;
   const indexedCount = docs?.filter((d) => d.status === "indexed").length ?? 0;
   const processingCount =
     docs?.filter((d) => d.status === "processing").length ?? 0;
 
+  const animatedTotal = useAnimatedCounter(totalDocs);
+  const animatedIndexed = useAnimatedCounter(indexedCount);
+
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold text-text-bright">Overview</h1>
+      <div className="mb-8 animate-fade-in-up">
+        <h1 className="text-2xl font-semibold gradient-text">Overview</h1>
         <p className="text-sm text-text-muted mt-1">
           Monitor your channels and knowledge base at a glance.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card hover>
+        {/* WhatsApp Card */}
+        <Card hover gradient className="animate-fade-in-up stagger-1">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <MessageCircleIcon size={16} className="text-text-muted" />
+                <div className="w-7 h-7 rounded-[var(--radius-md)] bg-green-muted flex items-center justify-center">
+                  <MessageCircleIcon size={14} className="text-green" />
+                </div>
                 <CardTitle>WhatsApp</CardTitle>
               </div>
               {waLoading && !waStatus ? (
                 <Skeleton className="h-5 w-20" />
               ) : (
-                <Badge variant={statusVariant} dot>
+                <Badge
+                  variant={statusVariant}
+                  dot
+                  pulse={waStatus?.status === "connected"}
+                >
                   {statusLabel}
                 </Badge>
               )}
@@ -100,17 +112,20 @@ export function Overview() {
           </CardContent>
         </Card>
 
-        <Card hover>
+        {/* Knowledge Base Card */}
+        <Card hover gradient className="animate-fade-in-up stagger-2">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <DatabaseIcon size={16} className="text-text-muted" />
+                <div className="w-7 h-7 rounded-[var(--radius-md)] bg-accent-dim flex items-center justify-center">
+                  <DatabaseIcon size={14} className="text-accent" />
+                </div>
                 <CardTitle>Knowledge Base</CardTitle>
               </div>
               {docsLoading && !docs ? (
                 <Skeleton className="h-5 w-16" />
               ) : (
-                <Badge variant="info">{docs?.length ?? 0} documents</Badge>
+                <Badge variant="info">{animatedTotal} docs</Badge>
               )}
             </div>
           </CardHeader>
@@ -123,8 +138,10 @@ export function Overview() {
             ) : (
               <div>
                 <p className="text-xs text-text-muted">
-                  {indexedCount} indexed
-                  {processingCount > 0 && `, ${processingCount} processing`}
+                  <span className="text-green font-medium">{animatedIndexed} indexed</span>
+                  {processingCount > 0 && (
+                    <span className="text-yellow"> · {processingCount} processing</span>
+                  )}
                 </p>
                 <Button
                   variant="ghost"
@@ -139,21 +156,26 @@ export function Overview() {
           </CardContent>
         </Card>
 
-        <Card hover>
+        {/* Organization Card */}
+        <Card hover gradient className="animate-fade-in-up stagger-3">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <BuildingIcon size={16} className="text-text-muted" />
+              <div className="w-7 h-7 rounded-[var(--radius-md)] bg-purple-500/10 flex items-center justify-center">
+                <BuildingIcon size={14} className="text-purple-400" />
+              </div>
               <CardTitle>Organization</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div>
-                <p className="text-xs text-text-dim">Org ID</p>
-                <p className="text-sm text-text font-mono">{user?.orgId}</p>
+                <p className="text-xs text-text-dim mb-0.5">Org ID</p>
+                <p className="text-sm text-text font-mono bg-surface-hi px-2 py-1 rounded-[var(--radius-sm)] inline-block">
+                  {user?.orgId}
+                </p>
               </div>
               <div>
-                <p className="text-xs text-text-dim">Role</p>
+                <p className="text-xs text-text-dim mb-0.5">Role</p>
                 <Badge variant={user?.role === "admin" ? "info" : "default"}>
                   {user?.role ?? "user"}
                 </Badge>
@@ -163,13 +185,14 @@ export function Overview() {
         </Card>
       </div>
 
-      <div>
+      {/* Quick Actions */}
+      <div className="animate-fade-in-up stagger-4">
         <h2 className="text-sm font-semibold text-text-bright mb-3">
           Quick Actions
         </h2>
         <div className="flex flex-wrap gap-3">
           <Button
-            variant="secondary"
+            variant="primary"
             icon={<UploadIcon size={16} />}
             onClick={() => setActiveView("knowledge-upload")}
           >
