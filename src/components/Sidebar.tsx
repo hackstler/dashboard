@@ -62,10 +62,10 @@ export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
 
         <div className="px-5 py-5 border-b border-border">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-gradient-to-br from-accent to-brand rounded-[var(--radius-md)] flex items-center justify-center shadow-[var(--shadow-glow-accent)]">
-              <span className="text-white text-xs font-bold">A</span>
+            <div className="w-9 h-9 bg-gradient-to-br from-accent to-brand rounded-[var(--radius-md)] flex items-center justify-center shadow-[var(--shadow-glow-accent)] transition-shadow duration-300 hover:shadow-[0_0_40px_rgba(59,130,246,0.4)]">
+              <span className="text-white text-sm font-bold">A</span>
             </div>
-            <span className="font-semibold text-sm text-text-bright tracking-tight">
+            <span className="font-semibold text-sm gradient-text tracking-tight">
               Agent Dashboard
             </span>
           </div>
@@ -78,9 +78,9 @@ export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
               <button
                 key={item.id}
                 onClick={() => handleNav(item.id)}
-                className={`animate-slide-in-left stagger-${i + 1} w-full flex items-center gap-3 px-3 py-2 text-sm rounded-[var(--radius-md)] transition-all duration-200 cursor-pointer ${
+                className={`animate-slide-in-left stagger-${i + 1} w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-[var(--radius-md)] transition-all duration-200 cursor-pointer relative ${
                   active
-                    ? "bg-accent-dim text-accent font-medium shadow-[var(--shadow-nav-active)]"
+                    ? "bg-accent-dim text-accent font-medium shadow-[var(--shadow-nav-active)] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-accent before:rounded-full before:shadow-[0_0_8px_rgba(59,130,246,0.5)]"
                     : "text-text-muted hover:bg-surface-hover hover:text-text hover:translate-x-0.5"
                 }`}
               >
@@ -94,7 +94,7 @@ export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
         </nav>
 
         <div className="border-t border-border px-4 py-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/30 to-brand/20 border border-accent/20 flex items-center justify-center text-xs font-semibold text-accent select-none">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/40 to-brand/30 border border-accent/25 flex items-center justify-center text-xs font-semibold text-accent select-none shadow-[0_0_12px_rgba(59,130,246,0.15)]">
             {user?.username?.charAt(0).toUpperCase() ?? "?"}
           </div>
           <div className="flex-1 min-w-0">

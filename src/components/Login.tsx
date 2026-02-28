@@ -31,15 +31,16 @@ export function Login({ onLogin }: LoginProps) {
   return (
     <div className="flex items-center justify-center min-h-screen bg-bg px-4 noise-bg relative overflow-hidden">
       {/* Ambient glow orbs */}
-      <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/3 w-72 h-72 bg-brand/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-accent/8 rounded-full blur-[150px] pointer-events-none animate-[glow-pulse_5s_ease-in-out_infinite]" />
+      <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-brand/6 rounded-full blur-[120px] pointer-events-none animate-[glow-pulse_7s_ease-in-out_infinite_1s]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-brand-accent/4 rounded-full blur-[100px] pointer-events-none animate-[glow-pulse_6s_ease-in-out_infinite_2s]" />
 
       <div className="w-full max-w-sm animate-fade-in-up relative">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-accent to-brand rounded-[var(--radius-xl)] flex items-center justify-center mb-4 shadow-[var(--shadow-glow-accent)]">
-            <span className="text-white text-xl font-bold">A</span>
+          <div className="w-14 h-14 bg-gradient-to-br from-accent to-brand rounded-[var(--radius-xl)] flex items-center justify-center mb-5 shadow-[var(--shadow-glow-accent)] animate-[float_4s_ease-in-out_infinite]">
+            <span className="text-white text-2xl font-bold">A</span>
           </div>
-          <h1 className="text-xl font-semibold gradient-text">
+          <h1 className="text-2xl font-bold gradient-text">
             Sign in to your account
           </h1>
           <p className="text-xs text-text-muted mt-2">

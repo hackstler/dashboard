@@ -38,8 +38,9 @@ export function Overview() {
   return (
     <div className="relative">
       {/* Ambient glow orbs */}
-      <div className="ambient-orb w-[500px] h-[300px] bg-accent/[0.04] -top-20 -left-40" />
-      <div className="ambient-orb w-[400px] h-[250px] bg-brand/[0.03] top-40 -right-32" />
+      <div className="ambient-orb w-[600px] h-[400px] bg-accent/[0.07] -top-32 -left-48" />
+      <div className="ambient-orb w-[500px] h-[350px] bg-brand/[0.05] top-20 -right-40" />
+      <div className="ambient-orb w-[300px] h-[200px] bg-brand-accent/[0.03] bottom-0 left-1/3" />
 
       {/* Header */}
       <div className="mb-10 animate-fade-in-up relative">
@@ -55,19 +56,19 @@ export function Overview() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
         {/* WhatsApp */}
         <div
-          className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-5 animate-fade-in-up stagger-1"
+          className="stat-card glow-card gradient-border bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-1"
           style={{
             "--stat-accent": waConnected ? "#22c55e" : waQr ? "#eab308" : "#3b82f6",
             "--stat-glow": waConnected
-              ? "rgba(34,197,94,0.1)"
+              ? "rgba(34,197,94,0.15)"
               : waQr
-                ? "rgba(234,179,8,0.06)"
-                : "rgba(59,130,246,0.06)",
+                ? "rgba(234,179,8,0.10)"
+                : "rgba(59,130,246,0.10)",
           } as React.CSSProperties}
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-9 h-9 rounded-[var(--radius-lg)] bg-green-muted flex items-center justify-center">
-              <MessageCircleIcon size={18} className="text-green" />
+          <div className="flex items-center justify-between mb-5">
+            <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-green-muted flex items-center justify-center">
+              <MessageCircleIcon size={20} className="text-green" />
             </div>
             {waLoading && !waStatus ? (
               <Skeleton className="h-5 w-24" />
@@ -81,10 +82,10 @@ export function Overview() {
               </Badge>
             )}
           </div>
-          <div className="mb-1">
-            <p className="text-2xl font-bold text-text-bright tracking-tight">
+          <div className="mb-2">
+            <p className="text-3xl font-bold text-text-bright tracking-tight">
               {waLoading && !waStatus ? (
-                <Skeleton className="h-8 w-20 inline-block" />
+                <Skeleton className="h-9 w-24 inline-block" />
               ) : waConnected ? (
                 waStatus?.phone ?? "Active"
               ) : (
@@ -105,15 +106,15 @@ export function Overview() {
 
         {/* Knowledge Base */}
         <div
-          className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-5 animate-fade-in-up stagger-2"
+          className="stat-card glow-card gradient-border bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-2"
           style={{
             "--stat-accent": "#3b82f6",
-            "--stat-glow": "rgba(59,130,246,0.08)",
+            "--stat-glow": "rgba(59,130,246,0.12)",
           } as React.CSSProperties}
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-9 h-9 rounded-[var(--radius-lg)] bg-accent-dim flex items-center justify-center">
-              <DatabaseIcon size={18} className="text-accent" />
+          <div className="flex items-center justify-between mb-5">
+            <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-accent-dim flex items-center justify-center">
+              <DatabaseIcon size={20} className="text-accent" />
             </div>
             {docsLoading && !docs ? (
               <Skeleton className="h-5 w-16" />
@@ -150,22 +151,22 @@ export function Overview() {
 
         {/* Organization */}
         <div
-          className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-5 animate-fade-in-up stagger-3"
+          className="stat-card glow-card gradient-border bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-3"
           style={{
             "--stat-accent": "#8b5cf6",
-            "--stat-glow": "rgba(139,92,246,0.06)",
+            "--stat-glow": "rgba(139,92,246,0.12)",
           } as React.CSSProperties}
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-9 h-9 rounded-[var(--radius-lg)] bg-brand/10 flex items-center justify-center">
-              <BuildingIcon size={18} className="text-brand" />
+          <div className="flex items-center justify-between mb-5">
+            <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-brand/10 flex items-center justify-center">
+              <BuildingIcon size={20} className="text-brand" />
             </div>
             <Badge variant={user?.role === "admin" ? "info" : "default"}>
               {user?.role ?? "user"}
             </Badge>
           </div>
-          <div className="mb-1">
-            <p className="text-2xl font-bold text-text-bright tracking-tight font-mono">
+          <div className="mb-2">
+            <p className="text-3xl font-bold text-text-bright tracking-tight font-mono">
               {user?.orgId}
             </p>
           </div>

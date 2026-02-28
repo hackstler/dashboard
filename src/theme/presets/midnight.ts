@@ -41,14 +41,14 @@ export const midnight: ThemeTokens = {
   shimmer: "rgba(255, 255, 255, 0.03)",
 
   // Shadows
-  shadowCard: "0 0 0 1px rgba(255,255,255,0.03), 0 1px 2px rgba(0,0,0,0.4)",
-  shadowCardHover: "0 0 0 1px rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.5)",
-  shadowGlowAccent: "0 0 24px rgba(59,130,246,0.2), 0 0 48px rgba(59,130,246,0.06)",
-  shadowGlowGreen: "0 0 24px rgba(34,197,94,0.2)",
-  shadowToastSuccess: "0 0 20px rgba(34, 197, 94, 0.08)",
-  shadowToastError: "0 0 20px rgba(239, 68, 68, 0.08)",
-  shadowToastInfo: "0 0 20px rgba(59, 130, 246, 0.08)",
-  shadowNavActive: "inset 0 0 0 1px rgba(59, 130, 246, 0.15)",
+  shadowCard: "0 0 0 1px rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.4)",
+  shadowCardHover: "0 0 0 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.5), 0 0 48px var(--card-glow, rgba(59,130,246,0.06))",
+  shadowGlowAccent: "0 0 30px rgba(59,130,246,0.3), 0 0 60px rgba(59,130,246,0.1)",
+  shadowGlowGreen: "0 0 30px rgba(34,197,94,0.25), 0 0 60px rgba(34,197,94,0.08)",
+  shadowToastSuccess: "0 0 24px rgba(34, 197, 94, 0.15), 0 0 48px rgba(34, 197, 94, 0.05)",
+  shadowToastError: "0 0 24px rgba(239, 68, 68, 0.15), 0 0 48px rgba(239, 68, 68, 0.05)",
+  shadowToastInfo: "0 0 24px rgba(59, 130, 246, 0.15), 0 0 48px rgba(59, 130, 246, 0.05)",
+  shadowNavActive: "inset 0 0 0 1px rgba(59, 130, 246, 0.2), 0 0 16px rgba(59, 130, 246, 0.08)",
 
   // Radii
   radiusSm: "0.375rem",
