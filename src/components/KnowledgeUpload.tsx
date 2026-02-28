@@ -34,7 +34,7 @@ export function KnowledgeUpload() {
           Upload Content
         </h1>
         <p className="text-sm text-text-muted mt-1">
-          Add files, URLs, or text to your knowledge base.
+          Add files, URLs, or text to your knowledge base for indexing.
         </p>
       </div>
 
@@ -83,15 +83,32 @@ function FileUploadTab({
   const handleSubmit = async () => {
     if (files.length === 0) return;
     setUploading(true);
+    let successCount = 0;
     try {
       for (const file of files) {
-        await uploadFile(file);
+        const result = await uploadFile(file);
+        if (result.status === "indexed") {
+          successCount++;
+        } else {
+          addToast(
+            `Failed to process ${file.name}: ${result.error ?? "unknown error"}`,
+            "error"
+          );
+        }
       }
-      addToast(`${files.length} file(s) uploaded successfully`, "success");
+      if (successCount > 0) {
+        addToast(
+          `${successCount} file(s) uploaded and indexed`,
+          "success"
+        );
+      }
       setFiles([]);
       setActiveView("knowledge-list");
-    } catch {
-      addToast("Failed to upload files", "error");
+    } catch (err) {
+      addToast(
+        err instanceof Error ? err.message : "Failed to upload files",
+        "error"
+      );
     } finally {
       setUploading(false);
     }
@@ -99,7 +116,11 @@ function FileUploadTab({
 
   return (
     <div className="space-y-4">
-      <FileDropzone onFiles={handleFiles} />
+      <FileDropzone
+        onFiles={handleFiles}
+        accept=".pdf,.md,.mdx,.html,.htm,.txt"
+        maxSizeMB={50}
+      />
       {files.length > 0 && (
         <div className="space-y-2">
           {files.map((file, i) => (
@@ -147,7 +168,7 @@ function UrlUploadTab({
   setActiveView: (view: "knowledge-list") => void;
 }) {
   const [url, setUrl] = useState("");
-  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -155,13 +176,20 @@ function UrlUploadTab({
     if (!url) return;
     setUploading(true);
     try {
-      await uploadUrl(url, name || undefined);
-      addToast("URL added successfully", "success");
+      const result = await uploadUrl(url, title || undefined);
+      if (result.status === "indexed") {
+        addToast("URL ingested and indexed successfully", "success");
+      } else {
+        addToast(`Ingestion failed: ${result.error ?? "unknown error"}`, "error");
+      }
       setUrl("");
-      setName("");
+      setTitle("");
       setActiveView("knowledge-list");
-    } catch {
-      addToast("Failed to add URL", "error");
+    } catch (err) {
+      addToast(
+        err instanceof Error ? err.message : "Failed to ingest URL",
+        "error"
+      );
     } finally {
       setUploading(false);
     }
@@ -178,11 +206,11 @@ function UrlUploadTab({
         icon={<LinkIcon size={16} />}
       />
       <Input
-        label="Name (optional)"
+        label="Title (optional)"
         type="text"
-        placeholder="Give this source a name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        placeholder="Override the auto-detected title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
       />
       <div className="flex justify-end pt-2">
         <Button
@@ -192,7 +220,7 @@ function UrlUploadTab({
           loading={uploading}
           disabled={!url}
         >
-          Add URL
+          Ingest URL
         </Button>
       </div>
     </form>
@@ -215,13 +243,20 @@ function TextUploadTab({
     if (!name || !content) return;
     setUploading(true);
     try {
-      await uploadText(content, name);
-      addToast("Text added successfully", "success");
+      const result = await uploadText(content, name);
+      if (result.status === "indexed") {
+        addToast("Text content uploaded and indexed", "success");
+      } else {
+        addToast(`Processing failed: ${result.error ?? "unknown error"}`, "error");
+      }
       setName("");
       setContent("");
       setActiveView("knowledge-list");
-    } catch {
-      addToast("Failed to add text", "error");
+    } catch (err) {
+      addToast(
+        err instanceof Error ? err.message : "Failed to upload text",
+        "error"
+      );
     } finally {
       setUploading(false);
     }
@@ -244,6 +279,10 @@ function TextUploadTab({
         onChange={(e) => setContent(e.target.value)}
         charCount
       />
+      <p className="text-xs text-text-dim">
+        Text will be uploaded as a .txt file and processed by the ingestion
+        pipeline.
+      </p>
       <div className="flex justify-end pt-2">
         <Button
           type="submit"
@@ -252,7 +291,7 @@ function TextUploadTab({
           loading={uploading}
           disabled={!name || !content}
         >
-          Add text
+          Upload text
         </Button>
       </div>
     </form>

@@ -1,11 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useApp } from "../context/AppContext";
-import {
-  listKnowledgeSources,
-  deleteKnowledgeSource,
-  listOrganizations,
-} from "../api/knowledge";
-import type { KnowledgeSource, Organization } from "../types";
+import { listDocuments, deleteDocument } from "../api/knowledge";
+import type { DocumentSource, DocumentContentType } from "../types";
 import { Card } from "./ui/Card";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
@@ -22,80 +18,88 @@ import {
   UploadIcon,
   DatabaseIcon,
 } from "./ui/Icons";
-import { formatDate, formatBytes } from "../utils/format";
+import { formatDate } from "../utils/format";
 
-const typeIcons = {
-  file: FileTextIcon,
-  url: LinkIcon,
+const typeIcons: Record<DocumentContentType, typeof FileTextIcon> = {
+  pdf: FileTextIcon,
+  markdown: FileTextIcon,
+  html: LinkIcon,
+  code: FileTextIcon,
   text: TypeIcon,
+  url: LinkIcon,
+  youtube: LinkIcon,
+};
+
+const typeLabels: Record<DocumentContentType, string> = {
+  pdf: "PDF",
+  markdown: "Markdown",
+  html: "HTML",
+  code: "Code",
+  text: "Text",
+  url: "URL",
+  youtube: "YouTube",
 };
 
 const statusVariant = {
-  ready: "success" as const,
+  pending: "default" as const,
   processing: "warning" as const,
-  error: "error" as const,
+  indexed: "success" as const,
+  failed: "error" as const,
 };
 
 export function KnowledgeList() {
   const { user, addToast, setActiveView } = useApp();
-  const [sources, setSources] = useState<KnowledgeSource[]>([]);
+  const [docs, setDocs] = useState<DocumentSource[]>([]);
   const [loading, setLoading] = useState(true);
-  const [orgs, setOrgs] = useState<Organization[]>([]);
   const [filterType, setFilterType] = useState<string>("all");
-  const [filterOrg, setFilterOrg] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<KnowledgeSource | null>(
-    null
-  );
+  const [deleteTarget, setDeleteTarget] = useState<DocumentSource | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const isAdmin = user?.role === "admin";
 
-  const fetchSources = useCallback(async () => {
+  const fetchDocs = useCallback(async () => {
     try {
-      const orgId = filterOrg !== "all" ? filterOrg : undefined;
-      const data = await listKnowledgeSources(orgId);
-      setSources(data);
+      const filters: { orgId?: string; contentType?: string; search?: string } =
+        {};
+      // Non-admin users only see their org's documents
+      if (!isAdmin && user?.orgId) {
+        filters.orgId = user.orgId;
+      }
+      if (filterType !== "all") {
+        filters.contentType = filterType;
+      }
+      if (search.trim()) {
+        filters.search = search.trim();
+      }
+      const data = await listDocuments(filters);
+      setDocs(data);
     } catch {
-      addToast("Failed to load knowledge sources", "error");
+      addToast("Failed to load documents", "error");
     } finally {
       setLoading(false);
     }
-  }, [filterOrg, addToast]);
+  }, [isAdmin, user?.orgId, filterType, search, addToast]);
 
   useEffect(() => {
-    fetchSources();
-  }, [fetchSources]);
-
-  useEffect(() => {
-    if (isAdmin) {
-      listOrganizations()
-        .then(setOrgs)
-        .catch(() => {});
-    }
-  }, [isAdmin]);
+    setLoading(true);
+    fetchDocs();
+  }, [fetchDocs]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteKnowledgeSource(deleteTarget.id);
-      setSources((prev) => prev.filter((s) => s.id !== deleteTarget.id));
-      addToast("Source deleted", "success");
+      await deleteDocument(deleteTarget.id);
+      setDocs((prev) => prev.filter((d) => d.id !== deleteTarget.id));
+      addToast("Document deleted", "success");
       setDeleteTarget(null);
     } catch {
-      addToast("Failed to delete source", "error");
+      addToast("Failed to delete document", "error");
     } finally {
       setDeleting(false);
     }
   };
-
-  const filtered = sources.filter((s) => {
-    if (filterType !== "all" && s.type !== filterType) return false;
-    if (search && !s.name.toLowerCase().includes(search.toLowerCase()))
-      return false;
-    return true;
-  });
 
   return (
     <div>
@@ -105,7 +109,9 @@ export function KnowledgeList() {
             Knowledge Base
           </h1>
           <p className="text-sm text-text-muted mt-1">
-            Manage your indexed content sources.
+            {isAdmin
+              ? "All indexed documents across organizations."
+              : "Manage your indexed documents."}
           </p>
         </div>
         <Button
@@ -120,7 +126,7 @@ export function KnowledgeList() {
 
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Input
-          placeholder="Search by name..."
+          placeholder="Search by title..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           icon={<SearchIcon size={16} />}
@@ -132,24 +138,14 @@ export function KnowledgeList() {
           className="bg-surface border border-border text-text text-sm px-3 py-2 rounded-[var(--radius-md)] outline-none focus:border-accent/50 cursor-pointer"
         >
           <option value="all">All types</option>
-          <option value="file">Files</option>
-          <option value="url">URLs</option>
+          <option value="pdf">PDF</option>
+          <option value="markdown">Markdown</option>
+          <option value="html">HTML</option>
           <option value="text">Text</option>
+          <option value="code">Code</option>
+          <option value="url">URL</option>
+          <option value="youtube">YouTube</option>
         </select>
-        {isAdmin && orgs.length > 0 && (
-          <select
-            value={filterOrg}
-            onChange={(e) => setFilterOrg(e.target.value)}
-            className="bg-surface border border-border text-text text-sm px-3 py-2 rounded-[var(--radius-md)] outline-none focus:border-accent/50 cursor-pointer"
-          >
-            <option value="all">All organizations</option>
-            {orgs.map((org) => (
-              <option key={org.id} value={org.id}>
-                {org.name}
-              </option>
-            ))}
-          </select>
-        )}
       </div>
 
       {loading ? (
@@ -168,11 +164,11 @@ export function KnowledgeList() {
             </div>
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : docs.length === 0 ? (
         <Card>
           <EmptyState
             icon={<DatabaseIcon size={40} />}
-            title="No sources found"
+            title="No documents found"
             description={
               search || filterType !== "all"
                 ? "Try adjusting your filters."
@@ -194,11 +190,11 @@ export function KnowledgeList() {
         </Card>
       ) : (
         <div className="space-y-2">
-          {filtered.map((source) => {
-            const IconComp = typeIcons[source.type];
+          {docs.map((doc) => {
+            const IconComp = typeIcons[doc.contentType] ?? FileTextIcon;
             return (
               <div
-                key={source.id}
+                key={doc.id}
                 className="flex items-center gap-4 px-4 py-3 bg-surface border border-border rounded-[var(--radius-lg)] hover:border-border-hi transition-colors"
               >
                 <div className="w-8 h-8 rounded-[var(--radius-md)] bg-surface-hi flex items-center justify-center shrink-0">
@@ -206,35 +202,39 @@ export function KnowledgeList() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-text-bright font-medium truncate">
-                    {source.name}
+                    {doc.title}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-xs text-text-dim">
-                      {formatDate(source.createdAt)}
+                      {typeLabels[doc.contentType]}
                     </span>
-                    {source.metadata.size != null && (
+                    <span className="text-text-dim">·</span>
+                    <span className="text-xs text-text-dim">
+                      {formatDate(doc.createdAt)}
+                    </span>
+                    {doc.chunkCount != null && doc.chunkCount > 0 && (
                       <>
                         <span className="text-text-dim">·</span>
                         <span className="text-xs text-text-dim">
-                          {formatBytes(source.metadata.size)}
+                          {doc.chunkCount} chunks
                         </span>
                       </>
                     )}
-                    {isAdmin && (
+                    {isAdmin && doc.orgId && (
                       <>
                         <span className="text-text-dim">·</span>
                         <span className="text-xs text-text-dim font-mono">
-                          {source.orgId}
+                          {doc.orgId}
                         </span>
                       </>
                     )}
                   </div>
                 </div>
-                <Badge variant={statusVariant[source.status]} dot>
-                  {source.status}
+                <Badge variant={statusVariant[doc.status]} dot>
+                  {doc.status}
                 </Badge>
                 <button
-                  onClick={() => setDeleteTarget(source)}
+                  onClick={() => setDeleteTarget(doc)}
                   className="text-text-dim hover:text-red transition-colors cursor-pointer p-1"
                   title="Delete"
                 >
@@ -249,15 +249,15 @@ export function KnowledgeList() {
       <Modal
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
-        title="Delete Source"
+        title="Delete Document"
       >
         <div className="space-y-4">
           <p className="text-sm text-text-muted">
             Are you sure you want to delete{" "}
             <span className="text-text-bright font-medium">
-              {deleteTarget?.name}
+              {deleteTarget?.title}
             </span>
-            ? This action cannot be undone.
+            ? This will remove the document and all its indexed chunks.
           </p>
           <div className="flex justify-end gap-3">
             <Button

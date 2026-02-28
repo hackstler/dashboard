@@ -2,8 +2,8 @@ import { useApp } from "../context/AppContext";
 import { usePolling } from "../hooks/usePolling";
 import { getWhatsappStatus } from "../api/channels";
 import type { WhatsAppStatus } from "../api/channels";
-import { listKnowledgeSources } from "../api/knowledge";
-import type { KnowledgeSource } from "../types";
+import { listDocuments } from "../api/knowledge";
+import type { DocumentSource } from "../types";
 import {
   Card,
   CardContent,
@@ -24,9 +24,10 @@ export function Overview() {
   const { user, setActiveView } = useApp();
   const { data: waStatus, loading: waLoading } =
     usePolling<WhatsAppStatus>(getWhatsappStatus, 5000);
-  const { data: sources, loading: sourcesLoading } = usePolling<
-    KnowledgeSource[]
-  >(() => listKnowledgeSources(), 10000);
+  const { data: docs, loading: docsLoading } = usePolling<DocumentSource[]>(
+    () => listDocuments(),
+    10000
+  );
 
   const statusVariant =
     waStatus?.status === "connected"
@@ -41,9 +42,9 @@ export function Overview() {
         ? "Awaiting QR"
         : "Disconnected";
 
-  const readyCount = sources?.filter((s) => s.status === "ready").length ?? 0;
+  const indexedCount = docs?.filter((d) => d.status === "indexed").length ?? 0;
   const processingCount =
-    sources?.filter((s) => s.status === "processing").length ?? 0;
+    docs?.filter((d) => d.status === "processing").length ?? 0;
 
   return (
     <div>
@@ -106,15 +107,15 @@ export function Overview() {
                 <DatabaseIcon size={16} className="text-text-muted" />
                 <CardTitle>Knowledge Base</CardTitle>
               </div>
-              {sourcesLoading && !sources ? (
+              {docsLoading && !docs ? (
                 <Skeleton className="h-5 w-16" />
               ) : (
-                <Badge variant="info">{sources?.length ?? 0} sources</Badge>
+                <Badge variant="info">{docs?.length ?? 0} documents</Badge>
               )}
             </div>
           </CardHeader>
           <CardContent>
-            {sourcesLoading && !sources ? (
+            {docsLoading && !docs ? (
               <div className="space-y-2">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-2/3" />
@@ -122,7 +123,8 @@ export function Overview() {
             ) : (
               <div>
                 <p className="text-xs text-text-muted">
-                  {readyCount} ready{processingCount > 0 && `, ${processingCount} processing`}
+                  {indexedCount} indexed
+                  {processingCount > 0 && `, ${processingCount} processing`}
                 </p>
                 <Button
                   variant="ghost"
@@ -130,7 +132,7 @@ export function Overview() {
                   className="mt-3 -ml-2.5"
                   onClick={() => setActiveView("knowledge-list")}
                 >
-                  View sources →
+                  View documents →
                 </Button>
               </div>
             )}
