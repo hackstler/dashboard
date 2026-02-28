@@ -44,7 +44,7 @@ export function Overview() {
 
       {/* Header */}
       <div className="mb-10 animate-fade-in-up relative">
-        <h1 className="text-3xl font-bold gradient-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold gradient-text tracking-tight">
           Overview
         </h1>
         <p className="text-sm text-text-muted mt-2">
@@ -53,7 +53,7 @@ export function Overview() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 mb-10">
         {/* WhatsApp */}
         <div
           className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-1"
@@ -83,7 +83,7 @@ export function Overview() {
             )}
           </div>
           <div className="mb-2">
-            <p className="text-3xl font-bold text-text-bright tracking-tight">
+            <p className="text-2xl sm:text-3xl font-bold text-text-bright tracking-tight">
               {waLoading && !waStatus ? (
                 <Skeleton className="h-9 w-24 inline-block" />
               ) : waConnected ? (
@@ -126,7 +126,7 @@ export function Overview() {
             {docsLoading && !docs ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <p className="text-4xl font-bold text-text-bright tracking-tight tabular-nums">
+              <p className="text-3xl sm:text-4xl font-bold text-text-bright tracking-tight tabular-nums">
                 {animatedTotal}
               </p>
             )}
@@ -166,7 +166,7 @@ export function Overview() {
             </Badge>
           </div>
           <div className="mb-2">
-            <p className="text-3xl font-bold text-text-bright tracking-tight font-mono">
+            <p className="text-xl sm:text-3xl font-bold text-text-bright tracking-tight font-mono">
               {user?.orgId}
             </p>
           </div>

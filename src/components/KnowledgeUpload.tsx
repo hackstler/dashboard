@@ -30,7 +30,7 @@ export function KnowledgeUpload() {
   return (
     <div>
       <div className="mb-8 animate-fade-in-up">
-        <h1 className="text-3xl font-bold gradient-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold gradient-text tracking-tight">
           Upload Content
         </h1>
         <p className="text-sm text-text-muted mt-2">

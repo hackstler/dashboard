@@ -99,9 +99,9 @@ export function KnowledgeList() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8 animate-fade-in-up">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 animate-fade-in-up">
         <div>
-          <h1 className="text-3xl font-bold gradient-text tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold gradient-text tracking-tight">
             Knowledge Base
           </h1>
           <p className="text-sm text-text-muted mt-2">
@@ -124,12 +124,12 @@ export function KnowledgeList() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           icon={<SearchIcon size={16} />}
-          className="w-64"
+          className="w-full sm:w-64"
         />
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="bg-surface border border-border text-text text-sm px-3 py-2 rounded-[var(--radius-md)] outline-none focus:border-accent/50 cursor-pointer"
+          className="w-full sm:w-auto bg-surface border border-border text-text text-sm px-3 py-2 rounded-[var(--radius-md)] outline-none focus:border-accent/50 cursor-pointer"
         >
           <option value="all">All types</option>
           <option value="pdf">PDF</option>
@@ -189,17 +189,17 @@ export function KnowledgeList() {
             return (
               <div
                 key={doc.id}
-                className="flex items-center gap-4 px-4 py-3 bg-surface border border-border rounded-[var(--radius-lg)] glow-card animate-fade-in-up"
+                className="flex flex-wrap sm:flex-nowrap items-center gap-4 px-4 py-3 bg-surface border border-border rounded-[var(--radius-lg)] glow-card animate-fade-in-up"
                 style={{ animationDelay: `${Math.min(i * 0.04, 0.4)}s` }}
               >
                 <div className="w-8 h-8 rounded-[var(--radius-md)] bg-surface-hi flex items-center justify-center shrink-0">
                   <IconComp size={16} className="text-text-muted" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-text-bright font-medium truncate">
+                  <p className="text-sm text-text-bright font-medium truncate sm:max-w-none">
                     {doc.title}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
                     <span className="text-xs text-text-dim">
                       {typeLabels[doc.contentType]}
                     </span>
