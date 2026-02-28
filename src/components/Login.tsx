@@ -6,7 +6,7 @@ interface LoginProps {
 }
 
 export function Login({ onLogin }: LoginProps) {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ export function Login({ onLogin }: LoginProps) {
     setError(null);
     setLoading(true);
     try {
-      await login(email, password);
+      await login(username, password);
       onLogin();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
@@ -34,9 +34,9 @@ export function Login({ onLogin }: LoginProps) {
         {error && <p className="text-red text-xs text-center">{error}</p>}
         <input
           type="text"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           className="bg-surface border border-border text-text text-sm px-3 py-2 outline-none focus:border-border-hi transition-colors"
         />
         <input
@@ -48,7 +48,7 @@ export function Login({ onLogin }: LoginProps) {
         />
         <button
           type="submit"
-          disabled={loading || !email || !password}
+          disabled={loading || !username || !password}
           className="bg-surface border border-border text-text-muted text-xs font-mono tracking-wider py-2 hover:text-text-bright hover:border-border-hi transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? "..." : "Login"}
