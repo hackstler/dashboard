@@ -46,8 +46,8 @@ export function WhatsAppPanel() {
   return (
     <div>
       <div className="mb-8 animate-fade-in-up">
-        <h1 className="text-2xl font-semibold gradient-text">WhatsApp</h1>
-        <p className="text-sm text-text-muted mt-1">
+        <h1 className="text-3xl font-bold gradient-text tracking-tight">WhatsApp</h1>
+        <p className="text-sm text-text-muted mt-2">
           Manage your WhatsApp channel connection.
         </p>
       </div>

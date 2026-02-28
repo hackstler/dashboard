@@ -101,10 +101,10 @@ export function KnowledgeList() {
     <div>
       <div className="flex items-center justify-between mb-8 animate-fade-in-up">
         <div>
-          <h1 className="text-2xl font-semibold gradient-text">
+          <h1 className="text-3xl font-bold gradient-text tracking-tight">
             Knowledge Base
           </h1>
-          <p className="text-sm text-text-muted mt-1">
+          <p className="text-sm text-text-muted mt-2">
             Manage your indexed documents.
           </p>
         </div>

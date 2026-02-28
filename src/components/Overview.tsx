@@ -5,12 +5,6 @@ import { getWhatsappStatus } from "../api/channels";
 import type { WhatsAppStatus } from "../api/channels";
 import { listDocuments } from "../api/knowledge";
 import type { DocumentSource } from "../types";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "./ui/Card";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
 import { Skeleton } from "./ui/Skeleton";
@@ -30,19 +24,6 @@ export function Overview() {
     10000
   );
 
-  const statusVariant =
-    waStatus?.status === "connected"
-      ? "success"
-      : waStatus?.status === "qr"
-        ? "warning"
-        : "default";
-  const statusLabel =
-    waStatus?.status === "connected"
-      ? "Connected"
-      : waStatus?.status === "qr"
-        ? "Awaiting QR"
-        : "Disconnected";
-
   const totalDocs = docs?.length ?? 0;
   const indexedCount = docs?.filter((d) => d.status === "indexed").length ?? 0;
   const processingCount =
@@ -51,138 +32,150 @@ export function Overview() {
   const animatedTotal = useAnimatedCounter(totalDocs);
   const animatedIndexed = useAnimatedCounter(indexedCount);
 
+  const waConnected = waStatus?.status === "connected";
+  const waQr = waStatus?.status === "qr";
+
   return (
-    <div>
-      <div className="mb-8 animate-fade-in-up">
-        <h1 className="text-2xl font-semibold gradient-text">Overview</h1>
-        <p className="text-sm text-text-muted mt-1">
+    <div className="relative">
+      {/* Ambient glow orbs */}
+      <div className="ambient-orb w-[500px] h-[300px] bg-accent/[0.04] -top-20 -left-40" />
+      <div className="ambient-orb w-[400px] h-[250px] bg-purple-500/[0.03] top-40 -right-32" />
+
+      {/* Header */}
+      <div className="mb-10 animate-fade-in-up relative">
+        <h1 className="text-3xl font-bold gradient-text tracking-tight">
+          Overview
+        </h1>
+        <p className="text-sm text-text-muted mt-2">
           Monitor your channels and knowledge base at a glance.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {/* WhatsApp Card */}
-        <Card hover gradient className="animate-fade-in-up stagger-1">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-[var(--radius-md)] bg-green-muted flex items-center justify-center">
-                  <MessageCircleIcon size={14} className="text-green" />
-                </div>
-                <CardTitle>WhatsApp</CardTitle>
-              </div>
-              {waLoading && !waStatus ? (
-                <Skeleton className="h-5 w-20" />
-              ) : (
-                <Badge
-                  variant={statusVariant}
-                  dot
-                  pulse={waStatus?.status === "connected"}
-                >
-                  {statusLabel}
-                </Badge>
-              )}
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+        {/* WhatsApp */}
+        <div
+          className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-5 animate-fade-in-up stagger-1"
+          style={{
+            "--stat-accent": waConnected ? "#22c55e" : waQr ? "#eab308" : "#3b82f6",
+            "--stat-glow": waConnected
+              ? "rgba(34,197,94,0.1)"
+              : waQr
+                ? "rgba(234,179,8,0.06)"
+                : "rgba(59,130,246,0.06)",
+          } as React.CSSProperties}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-9 h-9 rounded-[var(--radius-lg)] bg-green-muted flex items-center justify-center">
+              <MessageCircleIcon size={18} className="text-green" />
             </div>
-          </CardHeader>
-          <CardContent>
             {waLoading && !waStatus ? (
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
-              </div>
+              <Skeleton className="h-5 w-24" />
             ) : (
-              <div>
-                <p className="text-xs text-text-muted">
-                  {waStatus?.status === "connected"
-                    ? `Phone: ${waStatus.phone ?? "Unknown"}`
-                    : waStatus?.status === "qr"
-                      ? "Scan QR code to connect"
-                      : "Start the worker to connect"}
-                </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mt-3 -ml-2.5"
-                  onClick={() => setActiveView("whatsapp")}
-                >
-                  Manage channel →
-                </Button>
-              </div>
+              <Badge
+                variant={waConnected ? "success" : waQr ? "warning" : "default"}
+                dot
+                pulse={waConnected}
+              >
+                {waConnected ? "Connected" : waQr ? "Awaiting QR" : "Disconnected"}
+              </Badge>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Knowledge Base Card */}
-        <Card hover gradient className="animate-fade-in-up stagger-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-[var(--radius-md)] bg-accent-dim flex items-center justify-center">
-                  <DatabaseIcon size={14} className="text-accent" />
-                </div>
-                <CardTitle>Knowledge Base</CardTitle>
-              </div>
-              {docsLoading && !docs ? (
-                <Skeleton className="h-5 w-16" />
+          </div>
+          <div className="mb-1">
+            <p className="text-2xl font-bold text-text-bright tracking-tight">
+              {waLoading && !waStatus ? (
+                <Skeleton className="h-8 w-20 inline-block" />
+              ) : waConnected ? (
+                waStatus?.phone ?? "Active"
               ) : (
-                <Badge variant="info">{animatedTotal} docs</Badge>
+                "Offline"
               )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {docsLoading && !docs ? (
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
-              </div>
-            ) : (
-              <div>
-                <p className="text-xs text-text-muted">
-                  <span className="text-green font-medium">{animatedIndexed} indexed</span>
-                  {processingCount > 0 && (
-                    <span className="text-yellow"> · {processingCount} processing</span>
-                  )}
-                </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mt-3 -ml-2.5"
-                  onClick={() => setActiveView("knowledge-list")}
-                >
-                  View documents →
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </p>
+          </div>
+          <p className="text-xs text-text-muted mb-4">WhatsApp Channel</p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2.5"
+            onClick={() => setActiveView("whatsapp")}
+          >
+            Manage channel →
+          </Button>
+        </div>
 
-        {/* Organization Card */}
-        <Card hover gradient className="animate-fade-in-up stagger-3">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-[var(--radius-md)] bg-purple-500/10 flex items-center justify-center">
-                <BuildingIcon size={14} className="text-purple-400" />
-              </div>
-              <CardTitle>Organization</CardTitle>
+        {/* Knowledge Base */}
+        <div
+          className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-5 animate-fade-in-up stagger-2"
+          style={{
+            "--stat-accent": "#3b82f6",
+            "--stat-glow": "rgba(59,130,246,0.08)",
+          } as React.CSSProperties}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-9 h-9 rounded-[var(--radius-lg)] bg-accent-dim flex items-center justify-center">
+              <DatabaseIcon size={18} className="text-accent" />
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs text-text-dim mb-0.5">Org ID</p>
-                <p className="text-sm text-text font-mono bg-surface-hi px-2 py-1 rounded-[var(--radius-sm)] inline-block">
-                  {user?.orgId}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-text-dim mb-0.5">Role</p>
-                <Badge variant={user?.role === "admin" ? "info" : "default"}>
-                  {user?.role ?? "user"}
-                </Badge>
-              </div>
+            {docsLoading && !docs ? (
+              <Skeleton className="h-5 w-16" />
+            ) : (
+              <Badge variant="info">{animatedIndexed} indexed</Badge>
+            )}
+          </div>
+          <div className="mb-1">
+            {docsLoading && !docs ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <p className="text-4xl font-bold text-text-bright tracking-tight tabular-nums">
+                {animatedTotal}
+              </p>
+            )}
+          </div>
+          <p className="text-xs text-text-muted mb-4">
+            Documents
+            {processingCount > 0 && (
+              <span className="text-yellow ml-1">
+                · {processingCount} processing
+              </span>
+            )}
+          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2.5"
+            onClick={() => setActiveView("knowledge-list")}
+          >
+            View documents →
+          </Button>
+        </div>
+
+        {/* Organization */}
+        <div
+          className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-5 animate-fade-in-up stagger-3"
+          style={{
+            "--stat-accent": "#8b5cf6",
+            "--stat-glow": "rgba(139,92,246,0.06)",
+          } as React.CSSProperties}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-9 h-9 rounded-[var(--radius-lg)] bg-purple-500/10 flex items-center justify-center">
+              <BuildingIcon size={18} className="text-purple-400" />
             </div>
-          </CardContent>
-        </Card>
+            <Badge variant={user?.role === "admin" ? "info" : "default"}>
+              {user?.role ?? "user"}
+            </Badge>
+          </div>
+          <div className="mb-1">
+            <p className="text-2xl font-bold text-text-bright tracking-tight font-mono">
+              {user?.orgId}
+            </p>
+          </div>
+          <p className="text-xs text-text-muted mb-4">Organization</p>
+          <p className="text-xs text-text-dim">
+            {user?.role === "admin"
+              ? "Full access to all resources"
+              : "Member access"}
+          </p>
+        </div>
       </div>
 
       {/* Quick Actions */}

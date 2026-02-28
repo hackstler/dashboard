@@ -35,8 +35,8 @@ export function Layout({ onLogout, children }: LayoutProps) {
           </span>
         </header>
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-5xl mx-auto px-6 py-8">{children}</div>
+        <main className="flex-1 overflow-y-auto relative">
+          <div className="max-w-5xl mx-auto px-6 py-8 relative">{children}</div>
         </main>
       </div>
 
