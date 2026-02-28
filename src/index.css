@@ -261,6 +261,7 @@
   content: '';
   position: absolute;
   inset: 0;
+  pointer-events: none;
   border-radius: inherit;
   padding: 1px;
   background: conic-gradient(from var(--border-angle), transparent 40%, var(--color-accent) 50%, var(--color-brand) 55%, var(--color-brand-accent) 60%, transparent 70%);
