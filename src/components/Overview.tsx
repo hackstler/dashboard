@@ -56,7 +56,7 @@ export function Overview() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
         {/* WhatsApp */}
         <div
-          className="stat-card glow-card gradient-border bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-1"
+          className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-1"
           style={{
             "--stat-accent": waConnected ? "#22c55e" : waQr ? "#eab308" : "#3b82f6",
             "--stat-glow": waConnected
@@ -106,7 +106,7 @@ export function Overview() {
 
         {/* Knowledge Base */}
         <div
-          className="stat-card glow-card gradient-border bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-2"
+          className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-2"
           style={{
             "--stat-accent": "#3b82f6",
             "--stat-glow": "rgba(59,130,246,0.12)",
@@ -151,7 +151,7 @@ export function Overview() {
 
         {/* Organization */}
         <div
-          className="stat-card glow-card gradient-border bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-3"
+          className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-3"
           style={{
             "--stat-accent": "#8b5cf6",
             "--stat-glow": "rgba(139,92,246,0.12)",
