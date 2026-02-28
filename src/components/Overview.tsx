@@ -39,7 +39,7 @@ export function Overview() {
     <div className="relative">
       {/* Ambient glow orbs */}
       <div className="ambient-orb w-[500px] h-[300px] bg-accent/[0.04] -top-20 -left-40" />
-      <div className="ambient-orb w-[400px] h-[250px] bg-purple-500/[0.03] top-40 -right-32" />
+      <div className="ambient-orb w-[400px] h-[250px] bg-brand/[0.03] top-40 -right-32" />
 
       {/* Header */}
       <div className="mb-10 animate-fade-in-up relative">
@@ -157,8 +157,8 @@ export function Overview() {
           } as React.CSSProperties}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-9 h-9 rounded-[var(--radius-lg)] bg-purple-500/10 flex items-center justify-center">
-              <BuildingIcon size={18} className="text-purple-400" />
+            <div className="w-9 h-9 rounded-[var(--radius-lg)] bg-brand/10 flex items-center justify-center">
+              <BuildingIcon size={18} className="text-brand" />
             </div>
             <Badge variant={user?.role === "admin" ? "info" : "default"}>
               {user?.role ?? "user"}

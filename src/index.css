@@ -31,6 +31,26 @@
   --shadow-glow-accent: 0 0 24px rgba(59,130,246,0.2), 0 0 48px rgba(59,130,246,0.06);
   --shadow-glow-green:  0 0 24px rgba(34,197,94,0.2);
 
+  /* Brand secondary/tertiary */
+  --color-brand:          #8b5cf6;
+  --color-brand-dim:      rgba(139, 92, 246, 0.08);
+  --color-brand-accent:   #ec4899;
+
+  /* Glass surfaces */
+  --color-glass:          rgba(15, 15, 18, 0.80);
+  --color-glass-subtle:   rgba(15, 15, 18, 0.60);
+
+  /* Toast glow shadows */
+  --shadow-toast-success: 0 0 20px rgba(34, 197, 94, 0.08);
+  --shadow-toast-error:   0 0 20px rgba(239, 68, 68, 0.08);
+  --shadow-toast-info:    0 0 20px rgba(59, 130, 246, 0.08);
+
+  /* Nav active inset */
+  --shadow-nav-active:    inset 0 0 0 1px rgba(59, 130, 246, 0.15);
+
+  /* Shimmer highlight */
+  --color-shimmer:        rgba(255, 255, 255, 0.03);
+
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
@@ -105,7 +125,7 @@
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.03) 50%, transparent 75%);
+  background: linear-gradient(90deg, transparent 25%, var(--color-shimmer) 50%, transparent 75%);
   background-size: 200% 100%;
   animation: shimmer 1.8s ease-in-out infinite;
 }
@@ -142,20 +162,20 @@
 
 /* ── Glassmorphism ───────────────────────────────────────── */
 .glass {
-  background: rgba(15, 15, 18, 0.8);
+  background: var(--color-glass);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 .glass-subtle {
-  background: rgba(15, 15, 18, 0.6);
+  background: var(--color-glass-subtle);
   backdrop-filter: blur(12px) saturate(150%);
   -webkit-backdrop-filter: blur(12px) saturate(150%);
 }
 
 /* ── Gradient text ───────────────────────────────────────── */
 .gradient-text {
-  background: linear-gradient(to right, #fafafa 20%, #3b82f6 100%);
+  background: linear-gradient(to right, var(--color-text-bright) 20%, var(--color-accent) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -163,7 +183,7 @@
 
 /* ── Animated gradient accent bar ────────────────────────── */
 .gradient-bar {
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+  background: linear-gradient(90deg, var(--color-accent), var(--color-brand), var(--color-brand-accent), var(--color-accent));
   background-size: 200% 100%;
   animation: gradient-shift 3s ease infinite;
 }

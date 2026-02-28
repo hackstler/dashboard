@@ -13,9 +13,9 @@ const iconMap = {
 };
 
 const colorMap = {
-  success: "border-green/20 shadow-[0_0_20px_rgba(34,197,94,0.08)]",
-  error: "border-red/20 shadow-[0_0_20px_rgba(239,68,68,0.08)]",
-  info: "border-accent/20 shadow-[0_0_20px_rgba(59,130,246,0.08)]",
+  success: "border-green/20 shadow-[var(--shadow-toast-success)]",
+  error: "border-red/20 shadow-[var(--shadow-toast-error)]",
+  info: "border-accent/20 shadow-[var(--shadow-toast-info)]",
 };
 
 const iconColorMap = {

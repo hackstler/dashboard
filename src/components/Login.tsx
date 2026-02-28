@@ -32,11 +32,11 @@ export function Login({ onLogin }: LoginProps) {
     <div className="flex items-center justify-center min-h-screen bg-bg px-4 noise-bg relative overflow-hidden">
       {/* Ambient glow orbs */}
       <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/3 w-72 h-72 bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/3 w-72 h-72 bg-brand/5 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="w-full max-w-sm animate-fade-in-up relative">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-accent to-purple-500 rounded-[var(--radius-xl)] flex items-center justify-center mb-4 shadow-[var(--shadow-glow-accent)]">
+          <div className="w-12 h-12 bg-gradient-to-br from-accent to-brand rounded-[var(--radius-xl)] flex items-center justify-center mb-4 shadow-[var(--shadow-glow-accent)]">
             <span className="text-white text-xl font-bold">A</span>
           </div>
           <h1 className="text-xl font-semibold gradient-text">

@@ -176,7 +176,7 @@ function QrContent() {
 
   return (
     <div className="flex flex-col items-center gap-4 animate-scale-in">
-      <div className="p-3 bg-white rounded-[var(--radius-lg)] shadow-[0_0_40px_rgba(255,255,255,0.05)]">
+      <div className="p-3 bg-white rounded-[var(--radius-lg)] shadow-[var(--shadow-card-hover)]">
         <img src={qrImage} alt="WhatsApp QR Code" className="w-56 h-56" />
       </div>
       <div className="text-center">

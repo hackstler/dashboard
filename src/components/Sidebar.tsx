@@ -62,7 +62,7 @@ export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
 
         <div className="px-5 py-5 border-b border-border">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-gradient-to-br from-accent to-purple-500 rounded-[var(--radius-md)] flex items-center justify-center shadow-[var(--shadow-glow-accent)]">
+            <div className="w-8 h-8 bg-gradient-to-br from-accent to-brand rounded-[var(--radius-md)] flex items-center justify-center shadow-[var(--shadow-glow-accent)]">
               <span className="text-white text-xs font-bold">A</span>
             </div>
             <span className="font-semibold text-sm text-text-bright tracking-tight">
@@ -80,7 +80,7 @@ export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
                 onClick={() => handleNav(item.id)}
                 className={`animate-slide-in-left stagger-${i + 1} w-full flex items-center gap-3 px-3 py-2 text-sm rounded-[var(--radius-md)] transition-all duration-200 cursor-pointer ${
                   active
-                    ? "bg-accent-dim text-accent font-medium shadow-[inset_0_0_0_1px_rgba(59,130,246,0.15)]"
+                    ? "bg-accent-dim text-accent font-medium shadow-[var(--shadow-nav-active)]"
                     : "text-text-muted hover:bg-surface-hover hover:text-text hover:translate-x-0.5"
                 }`}
               >
@@ -94,7 +94,7 @@ export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
         </nav>
 
         <div className="border-t border-border px-4 py-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/30 to-purple-500/20 border border-accent/20 flex items-center justify-center text-xs font-semibold text-accent select-none">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/30 to-brand/20 border border-accent/20 flex items-center justify-center text-xs font-semibold text-accent select-none">
             {user?.username?.charAt(0).toUpperCase() ?? "?"}
           </div>
           <div className="flex-1 min-w-0">
