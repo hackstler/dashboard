@@ -9,7 +9,24 @@ export type ActiveView =
   | "overview"
   | "whatsapp"
   | "knowledge-upload"
-  | "knowledge-list";
+  | "knowledge-list"
+  | "users"
+  | "organizations";
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  orgId: string;
+  role: string;
+  createdAt: string;
+}
+
+export interface Organization {
+  orgId: string;
+  userCount: number;
+  docCount: number;
+  createdAt: string | null;
+}
 
 export type DocumentContentType =
   | "pdf"

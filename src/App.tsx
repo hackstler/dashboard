@@ -7,6 +7,8 @@ import { Overview } from "./components/Overview";
 import { WhatsAppPanel } from "./components/WhatsAppPanel";
 import { KnowledgeUpload } from "./components/KnowledgeUpload";
 import { KnowledgeList } from "./components/KnowledgeList";
+import { UserList } from "./components/UserList";
+import { OrganizationList } from "./components/OrganizationList";
 
 function AppContent() {
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
@@ -42,6 +44,8 @@ function AppContent() {
         {activeView === "whatsapp" && <WhatsAppPanel />}
         {activeView === "knowledge-upload" && <KnowledgeUpload />}
         {activeView === "knowledge-list" && <KnowledgeList />}
+        {activeView === "users" && <UserList />}
+        {activeView === "organizations" && <OrganizationList />}
       </div>
     </Layout>
   );
