@@ -7,7 +7,7 @@ type Tab = "whatsapp";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
-  const [user, setUser] = useState<{ email: string; orgId: string } | null>(
+  const [user, setUser] = useState<{ username: string; orgId: string } | null>(
     null
   );
   const [activeTab] = useState<Tab>("whatsapp");
@@ -52,11 +52,11 @@ function App() {
 
         <div className="border-t border-border px-4 py-3 flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-surface-hi border border-border-hi flex items-center justify-center text-[10px] font-mono text-text-muted select-none">
-            {user?.email?.charAt(0).toUpperCase() ?? "?"}
+            {user?.username?.charAt(0).toUpperCase() ?? "?"}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs text-text-dim font-mono truncate">
-              {user?.email}
+              {user?.username}
             </p>
           </div>
           <button

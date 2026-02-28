@@ -27,7 +27,7 @@ export async function login(
 
 export async function getMe(): Promise<{
   id: string;
-  email: string;
+  username: string;
   orgId: string;
 } | null> {
   const token = localStorage.getItem("auth_token");
@@ -36,10 +36,8 @@ export async function getMe(): Promise<{
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) return null;
-  const data = (await res.json()) as {
-    data: { id: string; email: string; orgId: string };
-  };
-  return data.data;
+  const data = (await res.json()) as { userId: string; username: string; orgId: string };
+  return { id: data.userId, username: data.username, orgId: data.orgId };
 }
 
 export function logout(): void {
