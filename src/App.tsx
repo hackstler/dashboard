@@ -26,7 +26,8 @@ function AppContent() {
         }
       });
     }
-  }, [loggedIn, setUser, auth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loggedIn]);
 
   const handleLogout = () => {
     auth.logout();
