@@ -34,6 +34,8 @@ export function Overview() {
 
   const waConnected = waStatus?.status === "connected";
   const waQr = waStatus?.status === "qr";
+  const waPending = waStatus?.status === "pending";
+  const waNotEnabled = waStatus?.status === "not_enabled";
 
   return (
     <div className="relative">
@@ -58,10 +60,14 @@ export function Overview() {
         <div
           className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-1"
           style={{
-            "--stat-accent": waConnected ? "#22c55e" : waQr ? "#eab308" : "#3b82f6",
+            "--stat-accent": waConnected
+              ? "#22c55e"
+              : waQr || waPending
+                ? "#eab308"
+                : "#3b82f6",
             "--stat-glow": waConnected
               ? "rgba(34,197,94,0.15)"
-              : waQr
+              : waQr || waPending
                 ? "rgba(234,179,8,0.10)"
                 : "rgba(59,130,246,0.10)",
           } as React.CSSProperties}
@@ -74,11 +80,25 @@ export function Overview() {
               <Skeleton className="h-5 w-24" />
             ) : (
               <Badge
-                variant={waConnected ? "success" : waQr ? "warning" : "default"}
+                variant={
+                  waConnected
+                    ? "success"
+                    : waQr || waPending
+                      ? "warning"
+                      : "default"
+                }
                 dot
                 pulse={waConnected}
               >
-                {waConnected ? "Connected" : waQr ? "Awaiting QR" : "Disconnected"}
+                {waConnected
+                  ? "Connected"
+                  : waQr
+                    ? "Awaiting QR"
+                    : waPending
+                      ? "Enabling..."
+                      : waNotEnabled
+                        ? "Not enabled"
+                        : "Disconnected"}
               </Badge>
             )}
           </div>
@@ -88,6 +108,10 @@ export function Overview() {
                 <Skeleton className="h-9 w-24 inline-block" />
               ) : waConnected ? (
                 waStatus?.phone ?? "Active"
+              ) : waPending ? (
+                "Enabling..."
+              ) : waNotEnabled ? (
+                "Not enabled"
               ) : (
                 "Offline"
               )}

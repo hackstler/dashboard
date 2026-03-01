@@ -6,7 +6,7 @@ function authHeaders(): HeadersInit {
 }
 
 export interface WhatsAppStatus {
-  status: "disconnected" | "qr" | "connected";
+  status: "not_enabled" | "pending" | "disconnected" | "qr" | "connected";
   phone: string | null;
   updatedAt?: string;
 }
@@ -28,6 +28,14 @@ export async function getWhatsappQr(): Promise<string | null> {
   if (!res.ok) throw new Error(`QR ${res.status}`);
   const json = (await res.json()) as { data: { qrData: string } };
   return json.data.qrData;
+}
+
+export async function enableWhatsapp(): Promise<void> {
+  const res = await fetch(`${BASE_URL}/channels/whatsapp/enable`, {
+    method: "POST",
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+  });
+  if (!res.ok) throw new Error(`Enable ${res.status}`);
 }
 
 export async function disconnectWhatsapp(): Promise<void> {

@@ -3,6 +3,7 @@ import {
   getWhatsappStatus,
   getWhatsappQr,
   disconnectWhatsapp,
+  enableWhatsapp,
 } from "../api/channels";
 import type { WhatsAppStatus } from "../api/channels";
 import { useState, useEffect } from "react";
@@ -29,6 +30,20 @@ export function WhatsAppPanel() {
     refetch,
   } = usePolling<WhatsAppStatus>(getWhatsappStatus, 3000);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [enabling, setEnabling] = useState(false);
+
+  const handleEnable = async () => {
+    setEnabling(true);
+    try {
+      await enableWhatsapp();
+      addToast("WhatsApp session created", "success");
+      refetch();
+    } catch {
+      addToast("Failed to enable WhatsApp", "error");
+    } finally {
+      setEnabling(false);
+    }
+  };
 
   const handleDisconnect = async () => {
     setDisconnecting(true);
@@ -70,7 +85,9 @@ export function WhatsAppPanel() {
                     ? "success"
                     : status?.status === "qr"
                       ? "warning"
-                      : "default"
+                      : status?.status === "pending"
+                        ? "warning"
+                        : "default"
                 }
                 dot
                 pulse={status?.status === "connected"}
@@ -79,7 +96,11 @@ export function WhatsAppPanel() {
                   ? "Connected"
                   : status?.status === "qr"
                     ? "Awaiting scan"
-                    : "Disconnected"}
+                    : status?.status === "pending"
+                      ? "Enabling..."
+                      : status?.status === "not_enabled"
+                        ? "Not enabled"
+                        : "Disconnected"}
               </Badge>
             )}
           </div>
@@ -103,12 +124,12 @@ export function WhatsAppPanel() {
             />
           ) : status?.status === "qr" ? (
             <QrContent />
+          ) : status?.status === "pending" ? (
+            <PendingContent />
+          ) : status?.status === "not_enabled" ? (
+            <NotEnabledContent onEnable={handleEnable} enabling={enabling} />
           ) : (
-            <EmptyState
-              icon={<MessageCircleIcon size={40} />}
-              title="Not connected"
-              description="The WhatsApp worker is not running. Start the worker to generate a QR code for connection."
-            />
+            <NotEnabledContent onEnable={handleEnable} enabling={enabling} />
           )}
         </CardContent>
       </Card>
@@ -185,6 +206,38 @@ function QrContent() {
           Open WhatsApp → Settings → Linked Devices → Link a Device
         </p>
       </div>
+    </div>
+  );
+}
+
+function NotEnabledContent({
+  onEnable,
+  enabling,
+}: {
+  onEnable: () => void;
+  enabling: boolean;
+}) {
+  return (
+    <div className="space-y-4 animate-fade-in">
+      <EmptyState
+        icon={<MessageCircleIcon size={40} />}
+        title="WhatsApp not enabled"
+        description="Enable WhatsApp to connect your personal phone and chat with the AI agent directly from WhatsApp."
+      />
+      <Button variant="primary" onClick={onEnable} loading={enabling}>
+        Enable WhatsApp
+      </Button>
+    </div>
+  );
+}
+
+function PendingContent() {
+  return (
+    <div className="flex flex-col items-center py-8 animate-fade-in">
+      <Skeleton className="w-56 h-56 rounded-[var(--radius-lg)]" />
+      <p className="text-xs text-text-muted mt-4 animate-pulse">
+        Waiting for worker to initialize your session...
+      </p>
     </div>
   );
 }
