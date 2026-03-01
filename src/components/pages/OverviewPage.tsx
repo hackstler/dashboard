@@ -1,33 +1,29 @@
-import { useApp } from "../context/AppContext";
-import { usePolling } from "../hooks/usePolling";
-import { useAnimatedCounter } from "../hooks/useAnimatedCounter";
-import { getWhatsappStatus } from "../api/channels";
-import type { WhatsAppStatus } from "../api/channels";
-import { listDocuments } from "../api/knowledge";
-import type { DocumentSource } from "../types";
-import { Badge } from "./ui/Badge";
-import { Button } from "./ui/Button";
-import { Skeleton } from "./ui/Skeleton";
+import { useApp } from "../../context/AppContext";
+import { useChannels } from "../../hooks/useChannels";
+import { useDocuments } from "../../hooks/useDocuments";
+import { useAnimatedCounter } from "../../hooks/useAnimatedCounter";
+import { Badge } from "../ui/Badge";
+import { Button } from "../ui/Button";
+import { Skeleton } from "../ui/Skeleton";
 import {
   MessageCircleIcon,
   DatabaseIcon,
   BuildingIcon,
   UploadIcon,
-} from "./ui/Icons";
+} from "../ui/Icons";
 
-export function Overview() {
+export function OverviewPage() {
   const { user, setActiveView } = useApp();
-  const { data: waStatus, loading: waLoading } =
-    usePolling<WhatsAppStatus>(getWhatsappStatus, 5000);
-  const { data: docs, loading: docsLoading } = usePolling<DocumentSource[]>(
-    () => listDocuments(),
-    10000
-  );
+  const { status: waStatus, loading: waLoading } = useChannels(5000);
+  const { documents: docs, loading: docsLoading } = useDocuments({
+    pollingInterval: 10000,
+  });
 
-  const totalDocs = docs?.length ?? 0;
-  const indexedCount = docs?.filter((d) => d.status === "indexed").length ?? 0;
-  const processingCount =
-    docs?.filter((d) => d.status === "processing").length ?? 0;
+  const totalDocs = docs.length;
+  const indexedCount = docs.filter((d) => d.status === "indexed").length;
+  const processingCount = docs.filter(
+    (d) => d.status === "processing"
+  ).length;
 
   const animatedTotal = useAnimatedCounter(totalDocs);
   const animatedIndexed = useAnimatedCounter(indexedCount);
@@ -59,18 +55,20 @@ export function Overview() {
         {/* WhatsApp */}
         <div
           className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-1"
-          style={{
-            "--stat-accent": waConnected
-              ? "#22c55e"
-              : waQr || waPending
-                ? "#eab308"
-                : "#3b82f6",
-            "--stat-glow": waConnected
-              ? "rgba(34,197,94,0.15)"
-              : waQr || waPending
-                ? "rgba(234,179,8,0.10)"
-                : "rgba(59,130,246,0.10)",
-          } as React.CSSProperties}
+          style={
+            {
+              "--stat-accent": waConnected
+                ? "#22c55e"
+                : waQr || waPending
+                  ? "#eab308"
+                  : "#3b82f6",
+              "--stat-glow": waConnected
+                ? "rgba(34,197,94,0.15)"
+                : waQr || waPending
+                  ? "rgba(234,179,8,0.10)"
+                  : "rgba(59,130,246,0.10)",
+            } as React.CSSProperties
+          }
         >
           <div className="flex items-center justify-between mb-5">
             <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-green-muted flex items-center justify-center">
@@ -124,30 +122,32 @@ export function Overview() {
             className="-ml-2.5"
             onClick={() => setActiveView("whatsapp")}
           >
-            Manage channel →
+            Manage channel &rarr;
           </Button>
         </div>
 
         {/* Knowledge Base */}
         <div
           className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-2"
-          style={{
-            "--stat-accent": "#3b82f6",
-            "--stat-glow": "rgba(59,130,246,0.12)",
-          } as React.CSSProperties}
+          style={
+            {
+              "--stat-accent": "#3b82f6",
+              "--stat-glow": "rgba(59,130,246,0.12)",
+            } as React.CSSProperties
+          }
         >
           <div className="flex items-center justify-between mb-5">
             <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-accent-dim flex items-center justify-center">
               <DatabaseIcon size={20} className="text-accent" />
             </div>
-            {docsLoading && !docs ? (
+            {docsLoading && docs.length === 0 ? (
               <Skeleton className="h-5 w-16" />
             ) : (
               <Badge variant="info">{animatedIndexed} indexed</Badge>
             )}
           </div>
           <div className="mb-1">
-            {docsLoading && !docs ? (
+            {docsLoading && docs.length === 0 ? (
               <Skeleton className="h-8 w-16" />
             ) : (
               <p className="text-3xl sm:text-4xl font-bold text-text-bright tracking-tight tabular-nums">
@@ -159,7 +159,7 @@ export function Overview() {
             Documents
             {processingCount > 0 && (
               <span className="text-yellow ml-1">
-                · {processingCount} processing
+                &middot; {processingCount} processing
               </span>
             )}
           </p>
@@ -169,17 +169,19 @@ export function Overview() {
             className="-ml-2.5"
             onClick={() => setActiveView("knowledge-list")}
           >
-            View documents →
+            View documents &rarr;
           </Button>
         </div>
 
         {/* Organization */}
         <div
           className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-3"
-          style={{
-            "--stat-accent": "#8b5cf6",
-            "--stat-glow": "rgba(139,92,246,0.12)",
-          } as React.CSSProperties}
+          style={
+            {
+              "--stat-accent": "#8b5cf6",
+              "--stat-glow": "rgba(139,92,246,0.12)",
+            } as React.CSSProperties
+          }
         >
           <div className="flex items-center justify-between mb-5">
             <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-brand/10 flex items-center justify-center">

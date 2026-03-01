@@ -1,43 +1,31 @@
-import { usePolling } from "../hooks/usePolling";
-import {
-  getWhatsappStatus,
-  getWhatsappQr,
-  disconnectWhatsapp,
-  enableWhatsapp,
-} from "../api/channels";
-import type { WhatsAppStatus } from "../api/channels";
 import { useState, useEffect } from "react";
+import { useApp } from "../../context/AppContext";
+import { useChannels } from "../../hooks/useChannels";
 import QRCode from "qrcode";
-import { useApp } from "../context/AppContext";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from "./ui/Card";
-import { Badge } from "./ui/Badge";
-import { Button } from "./ui/Button";
-import { Skeleton } from "./ui/Skeleton";
-import { EmptyState } from "./ui/EmptyState";
-import { MessageCircleIcon } from "./ui/Icons";
+} from "../ui/Card";
+import { Badge } from "../ui/Badge";
+import { Button } from "../ui/Button";
+import { Skeleton } from "../ui/Skeleton";
+import { EmptyState } from "../ui/EmptyState";
+import { MessageCircleIcon } from "../ui/Icons";
 
-export function WhatsAppPanel() {
+export function WhatsAppPage() {
   const { addToast } = useApp();
-  const {
-    data: status,
-    loading,
-    refetch,
-  } = usePolling<WhatsAppStatus>(getWhatsappStatus, 3000);
+  const { status, qrData, loading, enable, disconnect } = useChannels();
   const [disconnecting, setDisconnecting] = useState(false);
   const [enabling, setEnabling] = useState(false);
 
   const handleEnable = async () => {
     setEnabling(true);
     try {
-      await enableWhatsapp();
+      await enable();
       addToast("WhatsApp session created", "success");
-      refetch();
     } catch {
       addToast("Failed to enable WhatsApp", "error");
     } finally {
@@ -48,9 +36,8 @@ export function WhatsAppPanel() {
   const handleDisconnect = async () => {
     setDisconnecting(true);
     try {
-      await disconnectWhatsapp();
+      await disconnect();
       addToast("WhatsApp disconnected", "success");
-      refetch();
     } catch {
       addToast("Failed to disconnect", "error");
     } finally {
@@ -61,7 +48,9 @@ export function WhatsAppPanel() {
   return (
     <div>
       <div className="mb-8 animate-fade-in-up">
-        <h1 className="text-2xl sm:text-3xl font-bold gradient-text tracking-tight">WhatsApp</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold gradient-text tracking-tight">
+          WhatsApp
+        </h1>
         <p className="text-sm text-text-muted mt-2">
           Manage your WhatsApp channel connection.
         </p>
@@ -123,13 +112,14 @@ export function WhatsAppPanel() {
               disconnecting={disconnecting}
             />
           ) : status?.status === "qr" ? (
-            <QrContent />
+            <QrContent qrData={qrData} />
           ) : status?.status === "pending" ? (
             <PendingContent />
-          ) : status?.status === "not_enabled" ? (
-            <NotEnabledContent onEnable={handleEnable} enabling={enabling} />
           ) : (
-            <NotEnabledContent onEnable={handleEnable} enabling={enabling} />
+            <NotEnabledContent
+              onEnable={handleEnable}
+              enabling={enabling}
+            />
           )}
         </CardContent>
       </Card>
@@ -173,8 +163,7 @@ function ConnectedContent({
   );
 }
 
-function QrContent() {
-  const { data: qrData } = usePolling(() => getWhatsappQr(), 3000);
+function QrContent({ qrData }: { qrData: string | null }) {
   const [qrImage, setQrImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -203,7 +192,8 @@ function QrContent() {
       <div className="text-center">
         <p className="text-sm text-text-muted">Scan with WhatsApp</p>
         <p className="text-xs text-text-dim mt-1">
-          Open WhatsApp → Settings → Linked Devices → Link a Device
+          Open WhatsApp &rarr; Settings &rarr; Linked Devices &rarr; Link a
+          Device
         </p>
       </div>
     </div>

@@ -1,51 +1,52 @@
 import { useState, useEffect } from "react";
-import { isLoggedIn, logout, getMe } from "./api/auth";
+import { useAuth } from "./hooks/useAuth";
 import { AppProvider, useApp } from "./context/AppContext";
-import { Login } from "./components/Login";
+import { LoginPage } from "./components/pages/LoginPage";
 import { Layout } from "./components/Layout";
-import { Overview } from "./components/Overview";
-import { WhatsAppPanel } from "./components/WhatsAppPanel";
-import { KnowledgeUpload } from "./components/KnowledgeUpload";
-import { KnowledgeList } from "./components/KnowledgeList";
-import { UserList } from "./components/UserList";
-import { OrganizationList } from "./components/OrganizationList";
+import { OverviewPage } from "./components/pages/OverviewPage";
+import { WhatsAppPage } from "./components/pages/WhatsAppPage";
+import { KnowledgeUploadPage } from "./components/pages/KnowledgeUploadPage";
+import { KnowledgeListPage } from "./components/pages/KnowledgeListPage";
+import { UsersPage } from "./components/pages/UsersPage";
+import { OrganizationsPage } from "./components/pages/OrganizationsPage";
 
 function AppContent() {
-  const [loggedIn, setLoggedIn] = useState(isLoggedIn());
+  const auth = useAuth();
+  const [loggedIn, setLoggedIn] = useState(auth.isLoggedIn());
   const { setUser, activeView } = useApp();
 
   useEffect(() => {
     if (loggedIn) {
-      getMe().then((me) => {
+      auth.getMe().then((me) => {
         if (me) {
           setUser(me);
         } else {
-          logout();
+          auth.logout();
           setLoggedIn(false);
         }
       });
     }
-  }, [loggedIn, setUser]);
+  }, [loggedIn, setUser, auth]);
 
   const handleLogout = () => {
-    logout();
+    auth.logout();
     setUser(null);
     setLoggedIn(false);
   };
 
   if (!loggedIn) {
-    return <Login onLogin={() => setLoggedIn(true)} />;
+    return <LoginPage onLogin={() => setLoggedIn(true)} />;
   }
 
   return (
     <Layout onLogout={handleLogout}>
       <div className="animate-fade-in-up" key={activeView}>
-        {activeView === "overview" && <Overview />}
-        {activeView === "whatsapp" && <WhatsAppPanel />}
-        {activeView === "knowledge-upload" && <KnowledgeUpload />}
-        {activeView === "knowledge-list" && <KnowledgeList />}
-        {activeView === "users" && <UserList />}
-        {activeView === "organizations" && <OrganizationList />}
+        {activeView === "overview" && <OverviewPage />}
+        {activeView === "whatsapp" && <WhatsAppPage />}
+        {activeView === "knowledge-upload" && <KnowledgeUploadPage />}
+        {activeView === "knowledge-list" && <KnowledgeListPage />}
+        {activeView === "users" && <UsersPage />}
+        {activeView === "organizations" && <OrganizationsPage />}
       </div>
     </Layout>
   );

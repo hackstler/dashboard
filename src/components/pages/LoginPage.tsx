@@ -1,30 +1,25 @@
 import { useState } from "react";
-import { login } from "../api/auth";
-import { Card, CardContent } from "./ui/Card";
-import { Input } from "./ui/Input";
-import { Button } from "./ui/Button";
+import { useAuth } from "../../hooks/useAuth";
+import { Card, CardContent } from "../ui/Card";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
 
-interface LoginProps {
+interface LoginPageProps {
   onLogin: () => void;
 }
 
-export function Login({ onLogin }: LoginProps) {
+export function LoginPage({ onLogin }: LoginPageProps) {
+  const auth = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
     try {
-      await login(username, password);
+      await auth.login(username, password);
       onLogin();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
-    } finally {
-      setLoading(false);
+    } catch {
+      // error is set by the hook
     }
   };
 
@@ -51,9 +46,9 @@ export function Login({ onLogin }: LoginProps) {
         <Card className="gradient-border">
           <CardContent>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              {error && (
+              {auth.error && (
                 <div className="px-3 py-2 bg-red-muted border border-red/20 rounded-[var(--radius-md)] animate-fade-in">
-                  <p className="text-xs text-red">{error}</p>
+                  <p className="text-xs text-red">{auth.error}</p>
                 </div>
               )}
               <Input
@@ -76,7 +71,7 @@ export function Login({ onLogin }: LoginProps) {
                 type="submit"
                 variant="primary"
                 size="lg"
-                loading={loading}
+                loading={auth.loading}
                 disabled={!username || !password}
                 className="w-full mt-2"
               >

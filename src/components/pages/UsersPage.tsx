@@ -1,23 +1,28 @@
-import { useState, useEffect, useCallback } from "react";
-import { useApp } from "../context/AppContext";
-import { listUsers, createUser, deleteUser } from "../api/admin";
-import type { AdminUser } from "../types";
-import { Card } from "./ui/Card";
-import { Badge } from "./ui/Badge";
-import { Button } from "./ui/Button";
-import { Input } from "./ui/Input";
-import { Modal } from "./ui/Modal";
-import { Skeleton } from "./ui/Skeleton";
-import { EmptyState } from "./ui/EmptyState";
-import { SearchIcon, TrashIcon, UsersIcon, PlusIcon } from "./ui/Icons";
-import { formatDate } from "../utils/format";
+import { useState } from "react";
+import { useApp } from "../../context/AppContext";
+import { useUsers } from "../../hooks/useUsers";
+import type { AdminUser } from "../../types";
+import { Card } from "../ui/Card";
+import { Badge } from "../ui/Badge";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import { Modal } from "../ui/Modal";
+import { Skeleton } from "../ui/Skeleton";
+import { EmptyState } from "../ui/EmptyState";
+import { SearchIcon, TrashIcon, UsersIcon, PlusIcon } from "../ui/Icons";
+import { formatDate } from "../../utils/format";
 
-export function UserList() {
+export function UsersPage() {
   const { user, addToast } = useApp();
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [orgFilter, setOrgFilter] = useState("");
+
+  const {
+    users,
+    loading,
+    createUser,
+    deleteUser,
+  } = useUsers({ orgId: orgFilter, search });
 
   // Create modal
   const [showCreate, setShowCreate] = useState(false);
@@ -31,40 +36,23 @@ export function UserList() {
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      const filters: { orgId?: string; search?: string } = {};
-      if (orgFilter.trim()) filters.orgId = orgFilter.trim();
-      if (search.trim()) filters.search = search.trim();
-      const data = await listUsers(filters);
-      setUsers(data.items);
-    } catch {
-      addToast("Failed to load users", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [search, orgFilter, addToast]);
-
-  useEffect(() => {
-    setLoading(true);
-    fetchUsers();
-  }, [fetchUsers]);
-
   const handleCreate = async () => {
     setCreating(true);
     try {
-      const created = await createUser({
+      await createUser({
         username: newUsername,
         password: newPassword,
         orgId: newOrgId,
         role: newRole,
       });
-      setUsers((prev) => [...prev, created]);
       addToast("User created", "success");
       setShowCreate(false);
       resetCreateForm();
     } catch (err) {
-      addToast(err instanceof Error ? err.message : "Failed to create user", "error");
+      addToast(
+        err instanceof Error ? err.message : "Failed to create user",
+        "error"
+      );
     } finally {
       setCreating(false);
     }
@@ -75,11 +63,13 @@ export function UserList() {
     setDeleting(true);
     try {
       await deleteUser(deleteTarget.id);
-      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
       addToast("User deleted", "success");
       setDeleteTarget(null);
     } catch (err) {
-      addToast(err instanceof Error ? err.message : "Failed to delete user", "error");
+      addToast(
+        err instanceof Error ? err.message : "Failed to delete user",
+        "error"
+      );
     } finally {
       setDeleting(false);
     }
@@ -193,15 +183,13 @@ export function UserList() {
                   <span className="text-xs text-text-dim font-mono">
                     {u.orgId}
                   </span>
-                  <span className="text-text-dim">·</span>
+                  <span className="text-text-dim">&middot;</span>
                   <span className="text-xs text-text-dim">
                     {formatDate(u.createdAt)}
                   </span>
                 </div>
               </div>
-              <Badge
-                variant={u.role === "admin" ? "info" : "default"}
-              >
+              <Badge variant={u.role === "admin" ? "info" : "default"}>
                 {u.role}
               </Badge>
               <button
@@ -260,7 +248,9 @@ export function UserList() {
             <label className="text-xs font-medium text-text-muted">Role</label>
             <select
               value={newRole}
-              onChange={(e) => setNewRole(e.target.value as "admin" | "user")}
+              onChange={(e) =>
+                setNewRole(e.target.value as "admin" | "user")
+              }
               className="w-full bg-surface border border-border text-text text-sm px-3 py-2 rounded-[var(--radius-md)] outline-none focus:border-accent/50 cursor-pointer"
             >
               <option value="user">User</option>

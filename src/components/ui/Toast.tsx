@@ -1,4 +1,4 @@
-import type { Toast as ToastType } from "../../hooks/useToast";
+import type { Toast as ToastType } from "../../types";
 import { CheckCircleIcon, AlertCircleIcon, InfoIcon, XIcon } from "./Icons";
 
 interface ToastContainerProps {

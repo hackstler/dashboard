@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
-import { useApp } from "../context/AppContext";
-import { listDocuments, deleteDocument } from "../api/knowledge";
-import type { DocumentSource, DocumentContentType } from "../types";
-import { Card } from "./ui/Card";
-import { Badge } from "./ui/Badge";
-import { Button } from "./ui/Button";
-import { Input } from "./ui/Input";
-import { Modal } from "./ui/Modal";
-import { Skeleton } from "./ui/Skeleton";
-import { EmptyState } from "./ui/EmptyState";
+import { useState } from "react";
+import { useApp } from "../../context/AppContext";
+import { useDocuments } from "../../hooks/useDocuments";
+import type { DocumentSource, DocumentContentType } from "../../types";
+import { Card } from "../ui/Card";
+import { Badge } from "../ui/Badge";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import { Modal } from "../ui/Modal";
+import { Skeleton } from "../ui/Skeleton";
+import { EmptyState } from "../ui/EmptyState";
 import {
   SearchIcon,
   FileTextIcon,
@@ -17,8 +17,8 @@ import {
   TrashIcon,
   UploadIcon,
   DatabaseIcon,
-} from "./ui/Icons";
-import { formatDate } from "../utils/format";
+} from "../ui/Icons";
+import { formatDate } from "../../utils/format";
 
 const typeIcons: Record<DocumentContentType, typeof FileTextIcon> = {
   pdf: FileTextIcon,
@@ -47,47 +47,27 @@ const statusVariant = {
   failed: "error" as const,
 };
 
-export function KnowledgeList() {
+export function KnowledgeListPage() {
   const { user, addToast, setActiveView } = useApp();
-  const [docs, setDocs] = useState<DocumentSource[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<string>("all");
   const [search, setSearch] = useState("");
+
+  const {
+    documents: docs,
+    loading,
+    deleteDocument,
+  } = useDocuments({ contentType: filterType, search });
+
   const [deleteTarget, setDeleteTarget] = useState<DocumentSource | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const isAdmin = user?.role === "admin";
-
-  const fetchDocs = useCallback(async () => {
-    try {
-      const filters: { contentType?: string; search?: string } = {};
-      if (filterType !== "all") {
-        filters.contentType = filterType;
-      }
-      if (search.trim()) {
-        filters.search = search.trim();
-      }
-      // orgId filtering is enforced server-side from the JWT
-      const data = await listDocuments(filters);
-      setDocs(data);
-    } catch {
-      addToast("Failed to load documents", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [filterType, search, addToast]);
-
-  useEffect(() => {
-    setLoading(true);
-    fetchDocs();
-  }, [fetchDocs]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
       await deleteDocument(deleteTarget.id);
-      setDocs((prev) => prev.filter((d) => d.id !== deleteTarget.id));
       addToast("Document deleted", "success");
       setDeleteTarget(null);
     } catch {
@@ -203,13 +183,13 @@ export function KnowledgeList() {
                     <span className="text-xs text-text-dim">
                       {typeLabels[doc.contentType]}
                     </span>
-                    <span className="text-text-dim">·</span>
+                    <span className="text-text-dim">&middot;</span>
                     <span className="text-xs text-text-dim">
                       {formatDate(doc.createdAt)}
                     </span>
                     {doc.chunkCount != null && doc.chunkCount > 0 && (
                       <>
-                        <span className="text-text-dim">·</span>
+                        <span className="text-text-dim">&middot;</span>
                         <span className="text-xs text-text-dim">
                           {doc.chunkCount} chunks
                         </span>
@@ -217,7 +197,7 @@ export function KnowledgeList() {
                     )}
                     {isAdmin && doc.orgId && (
                       <>
-                        <span className="text-text-dim">·</span>
+                        <span className="text-text-dim">&middot;</span>
                         <span className="text-xs text-text-dim font-mono">
                           {doc.orgId}
                         </span>

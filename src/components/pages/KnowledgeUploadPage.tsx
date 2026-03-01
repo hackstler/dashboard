@@ -1,21 +1,22 @@
 import { useState } from "react";
-import { useApp } from "../context/AppContext";
-import { uploadFile, uploadUrl, uploadText } from "../api/knowledge";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/Card";
-import { Tabs } from "./ui/Tabs";
-import { FileDropzone } from "./ui/FileDropzone";
-import { Input } from "./ui/Input";
-import { Textarea } from "./ui/Textarea";
-import { Button } from "./ui/Button";
-import { Badge } from "./ui/Badge";
+import { useApp } from "../../context/AppContext";
+import { useDocuments } from "../../hooks/useDocuments";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";
+import { Tabs } from "../ui/Tabs";
+import { FileDropzone } from "../ui/FileDropzone";
+import { Input } from "../ui/Input";
+import { Textarea } from "../ui/Textarea";
+import { Button } from "../ui/Button";
+import { Badge } from "../ui/Badge";
 import {
   UploadIcon,
   LinkIcon,
   TypeIcon,
   FileTextIcon,
   XIcon,
-} from "./ui/Icons";
-import { formatBytes } from "../utils/format";
+} from "../ui/Icons";
+import { formatBytes } from "../../utils/format";
+import type { ToastType } from "../../types";
 
 const tabs = [
   { id: "file", label: "File Upload" },
@@ -23,8 +24,9 @@ const tabs = [
   { id: "text", label: "Text" },
 ];
 
-export function KnowledgeUpload() {
+export function KnowledgeUploadPage() {
   const { addToast, setActiveView } = useApp();
+  const { uploadFile, uploadUrl, uploadText } = useDocuments();
   const [activeTab, setActiveTab] = useState("file");
 
   return (
@@ -50,13 +52,25 @@ export function KnowledgeUpload() {
         </CardHeader>
         <CardContent>
           {activeTab === "file" && (
-            <FileUploadTab addToast={addToast} setActiveView={setActiveView} />
+            <FileUploadTab
+              uploadFile={uploadFile}
+              addToast={addToast}
+              setActiveView={setActiveView}
+            />
           )}
           {activeTab === "url" && (
-            <UrlUploadTab addToast={addToast} setActiveView={setActiveView} />
+            <UrlUploadTab
+              uploadUrl={uploadUrl}
+              addToast={addToast}
+              setActiveView={setActiveView}
+            />
           )}
           {activeTab === "text" && (
-            <TextUploadTab addToast={addToast} setActiveView={setActiveView} />
+            <TextUploadTab
+              uploadText={uploadText}
+              addToast={addToast}
+              setActiveView={setActiveView}
+            />
           )}
         </CardContent>
       </Card>
@@ -65,10 +79,12 @@ export function KnowledgeUpload() {
 }
 
 function FileUploadTab({
+  uploadFile,
   addToast,
   setActiveView,
 }: {
-  addToast: (msg: string, type: "success" | "error" | "info") => void;
+  uploadFile: (file: File) => Promise<{ status: string; error?: string }>;
+  addToast: (msg: string, type: ToastType) => void;
   setActiveView: (view: "knowledge-list") => void;
 }) {
   const [files, setFiles] = useState<File[]>([]);
@@ -163,10 +179,12 @@ function FileUploadTab({
 }
 
 function UrlUploadTab({
+  uploadUrl,
   addToast,
   setActiveView,
 }: {
-  addToast: (msg: string, type: "success" | "error" | "info") => void;
+  uploadUrl: (url: string, title?: string) => Promise<{ status: string; error?: string }>;
+  addToast: (msg: string, type: ToastType) => void;
   setActiveView: (view: "knowledge-list") => void;
 }) {
   const [url, setUrl] = useState("");
@@ -230,10 +248,12 @@ function UrlUploadTab({
 }
 
 function TextUploadTab({
+  uploadText,
   addToast,
   setActiveView,
 }: {
-  addToast: (msg: string, type: "success" | "error" | "info") => void;
+  uploadText: (content: string, name: string) => Promise<{ status: string; error?: string }>;
+  addToast: (msg: string, type: ToastType) => void;
   setActiveView: (view: "knowledge-list") => void;
 }) {
   const [name, setName] = useState("");

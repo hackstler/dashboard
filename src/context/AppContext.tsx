@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
-import type { User, ActiveView } from "../types";
-import type { Toast, ToastType } from "../hooks/useToast";
+import type { User, ActiveView, Toast, ToastType } from "../types";
 
 interface AppContextValue {
   user: User | null;

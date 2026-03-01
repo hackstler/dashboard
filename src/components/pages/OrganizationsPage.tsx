@@ -1,17 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
-import { useApp } from "../context/AppContext";
-import {
-  listOrganizations,
-  createOrganization,
-  deleteOrganization,
-} from "../api/admin";
-import type { Organization } from "../types";
-import { Card } from "./ui/Card";
-import { Button } from "./ui/Button";
-import { Input } from "./ui/Input";
-import { Modal } from "./ui/Modal";
-import { Skeleton } from "./ui/Skeleton";
-import { EmptyState } from "./ui/EmptyState";
+import { useState } from "react";
+import { useApp } from "../../context/AppContext";
+import { useOrganizations } from "../../hooks/useOrganizations";
+import type { Organization } from "../../types";
+import { Card } from "../ui/Card";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import { Modal } from "../ui/Modal";
+import { Skeleton } from "../ui/Skeleton";
+import { EmptyState } from "../ui/EmptyState";
 import {
   BuildingIcon,
   TrashIcon,
@@ -19,13 +15,17 @@ import {
   UsersIcon,
   DatabaseIcon,
   AlertCircleIcon,
-} from "./ui/Icons";
-import { formatDate } from "../utils/format";
+} from "../ui/Icons";
+import { formatDate } from "../../utils/format";
 
-export function OrganizationList() {
+export function OrganizationsPage() {
   const { user, addToast } = useApp();
-  const [orgs, setOrgs] = useState<Organization[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    organizations: orgs,
+    loading,
+    createOrganization,
+    deleteOrganization,
+  } = useOrganizations();
 
   // Create modal
   const [showCreate, setShowCreate] = useState(false);
@@ -38,39 +38,14 @@ export function OrganizationList() {
   const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchOrgs = useCallback(async () => {
-    try {
-      const data = await listOrganizations();
-      setOrgs(data.items);
-    } catch {
-      addToast("Failed to load organizations", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [addToast]);
-
-  useEffect(() => {
-    setLoading(true);
-    fetchOrgs();
-  }, [fetchOrgs]);
-
   const handleCreate = async () => {
     setCreating(true);
     try {
-      const result = await createOrganization({
+      await createOrganization({
         orgId: newOrgId,
         adminUsername: newAdminUsername,
         adminPassword: newAdminPassword,
       });
-      setOrgs((prev) => [
-        ...prev,
-        {
-          orgId: result.orgId,
-          userCount: 1,
-          docCount: 0,
-          createdAt: result.admin.createdAt,
-        },
-      ]);
       addToast("Organization created", "success");
       setShowCreate(false);
       resetCreateForm();
@@ -89,7 +64,6 @@ export function OrganizationList() {
     setDeleting(true);
     try {
       await deleteOrganization(deleteTarget.orgId);
-      setOrgs((prev) => prev.filter((o) => o.orgId !== deleteTarget.orgId));
       addToast("Organization deleted", "success");
       setDeleteTarget(null);
     } catch (err) {
