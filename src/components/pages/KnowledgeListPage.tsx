@@ -55,6 +55,7 @@ export function KnowledgeListPage() {
   const {
     documents: docs,
     loading,
+    error,
     deleteDocument,
   } = useDocuments({ contentType: filterType, search });
 
@@ -121,6 +122,12 @@ export function KnowledgeListPage() {
           <option value="youtube">YouTube</option>
         </select>
       </div>
+
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-[var(--radius-md)] text-sm text-red-400">
+          {error}
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-3">

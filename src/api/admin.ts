@@ -25,15 +25,26 @@ export async function listUsers(filters?: {
   return (await res.json()) as { items: AdminUser[]; total: number };
 }
 
-/**
- * POST /admin/users
- */
-export async function createUser(data: {
+export interface CreateUserData {
   username: string;
   password: string;
   orgId: string;
   role: "admin" | "user";
-}): Promise<AdminUser> {
+}
+
+export interface InviteUserData {
+  email: string;
+  orgId: string;
+  role: "admin" | "user";
+}
+
+/**
+ * POST /admin/users
+ * Sends CreateUserData (password strategy) or InviteUserData (firebase strategy).
+ */
+export async function createUser(
+  data: CreateUserData | InviteUserData
+): Promise<AdminUser> {
   const res = await fetch(`${BASE_URL}/admin/users`, {
     method: "POST",
     headers: { ...authHeaders(), "Content-Type": "application/json" },

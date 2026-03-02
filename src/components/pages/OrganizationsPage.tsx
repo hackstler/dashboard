@@ -23,6 +23,7 @@ export function OrganizationsPage() {
   const {
     organizations: orgs,
     loading,
+    error,
     createOrganization,
     deleteOrganization,
   } = useOrganizations();
@@ -104,6 +105,12 @@ export function OrganizationsPage() {
           Create Organization
         </Button>
       </div>
+
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-[var(--radius-md)] text-sm text-red-400">
+          {error}
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-3">

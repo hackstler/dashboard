@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useApp } from "../../context/AppContext";
 import { useUsers } from "../../hooks/useUsers";
+import { getAuthStrategy } from "../../api/auth";
 import type { AdminUser } from "../../types";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
@@ -14,12 +15,14 @@ import { formatDate } from "../../utils/format";
 
 export function UsersPage() {
   const { user, addToast } = useApp();
+  const strategy = getAuthStrategy();
   const [search, setSearch] = useState("");
   const [orgFilter, setOrgFilter] = useState("");
 
   const {
     users,
     loading,
+    error,
     createUser,
     deleteUser,
   } = useUsers({ orgId: orgFilter, search });
@@ -29,6 +32,7 @@ export function UsersPage() {
   const [creating, setCreating] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [newOrgId, setNewOrgId] = useState("");
   const [newRole, setNewRole] = useState<"admin" | "user">("user");
 
@@ -39,13 +43,17 @@ export function UsersPage() {
   const handleCreate = async () => {
     setCreating(true);
     try {
-      await createUser({
-        username: newUsername,
-        password: newPassword,
-        orgId: newOrgId,
-        role: newRole,
-      });
-      addToast("User created", "success");
+      if (strategy === "firebase") {
+        await createUser({ email: newEmail, orgId: newOrgId, role: newRole });
+      } else {
+        await createUser({
+          username: newUsername,
+          password: newPassword,
+          orgId: newOrgId,
+          role: newRole,
+        });
+      }
+      addToast(strategy === "firebase" ? "User invited" : "User created", "success");
       setShowCreate(false);
       resetCreateForm();
     } catch (err) {
@@ -78,9 +86,15 @@ export function UsersPage() {
   const resetCreateForm = () => {
     setNewUsername("");
     setNewPassword("");
+    setNewEmail("");
     setNewOrgId("");
     setNewRole("user");
   };
+
+  const isCreateDisabled =
+    strategy === "firebase"
+      ? !newEmail || !newOrgId
+      : !newUsername || !newPassword || !newOrgId;
 
   const isSelf = (u: AdminUser) => u.id === user?.id;
 
@@ -101,7 +115,7 @@ export function UsersPage() {
           icon={<PlusIcon size={16} />}
           onClick={() => setShowCreate(true)}
         >
-          Create User
+          {strategy === "firebase" ? "Invite User" : "Create User"}
         </Button>
       </div>
 
@@ -120,6 +134,12 @@ export function UsersPage() {
           className="w-full sm:w-48"
         />
       </div>
+
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-[var(--radius-md)] text-sm text-red-400">
+          {error}
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-3">
@@ -145,7 +165,9 @@ export function UsersPage() {
             description={
               search || orgFilter
                 ? "Try adjusting your filters."
-                : "Create your first user to get started."
+                : strategy === "firebase"
+                  ? "Invite your first user to get started."
+                  : "Create your first user to get started."
             }
             action={
               !search && !orgFilter ? (
@@ -222,22 +244,34 @@ export function UsersPage() {
           setShowCreate(false);
           resetCreateForm();
         }}
-        title="Create User"
+        title={strategy === "firebase" ? "Invite User" : "Create User"}
       >
         <div className="space-y-4">
-          <Input
-            label="Username"
-            placeholder="john@example.com"
-            value={newUsername}
-            onChange={(e) => setNewUsername(e.target.value)}
-          />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Min 8 characters"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
+          {strategy === "firebase" ? (
+            <Input
+              label="Email"
+              type="email"
+              placeholder="user@example.com"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+            />
+          ) : (
+            <>
+              <Input
+                label="Username"
+                placeholder="john@example.com"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+              />
+              <Input
+                label="Password"
+                type="password"
+                placeholder="Min 8 characters"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </>
+          )}
           <Input
             label="Organization ID"
             placeholder="my-org"
@@ -273,9 +307,9 @@ export function UsersPage() {
               size="sm"
               onClick={handleCreate}
               loading={creating}
-              disabled={!newUsername || !newPassword || !newOrgId}
+              disabled={isCreateDisabled}
             >
-              Create
+              {strategy === "firebase" ? "Invite" : "Create"}
             </Button>
           </div>
         </div>

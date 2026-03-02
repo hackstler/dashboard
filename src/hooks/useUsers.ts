@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { listUsers, createUser, deleteUser } from "../api/admin";
+import type { CreateUserData, InviteUserData } from "../api/admin";
 import type { AdminUser } from "../types";
 
 interface UseUsersReturn {
@@ -7,12 +8,7 @@ interface UseUsersReturn {
   loading: boolean;
   error: string | null;
   refetch: () => void;
-  createUser: (data: {
-    username: string;
-    password: string;
-    orgId: string;
-    role: "admin" | "user";
-  }) => Promise<AdminUser>;
+  createUser: (data: CreateUserData | InviteUserData) => Promise<AdminUser>;
   deleteUser: (id: string) => Promise<void>;
 }
 
@@ -46,12 +42,7 @@ export function useUsers(filters: {
   }, [fetchUsers]);
 
   const addUser = useCallback(
-    async (data: {
-      username: string;
-      password: string;
-      orgId: string;
-      role: "admin" | "user";
-    }) => {
+    async (data: CreateUserData | InviteUserData) => {
       const created = await createUser(data);
       setUsers((prev) => [...prev, created]);
       return created;
