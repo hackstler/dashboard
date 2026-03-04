@@ -7,7 +7,7 @@ import {
   signInWithEmailLink,
   signOut,
 } from "firebase/auth";
-import { firebaseAuth } from "../config/firebase";
+import { getFirebaseAuth } from "../config/firebase";
 
 const MAGIC_LINK_STORAGE_KEY = "firebase_magic_link_email";
 
@@ -31,7 +31,8 @@ export function useFirebaseAuth(): UseFirebaseAuthReturn {
     setLoading(true);
     setError(null);
     try {
-      const result = await signInWithPopup(firebaseAuth, googleProvider);
+      const auth = getFirebaseAuth();
+      const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
       return idToken;
     } catch (err) {
@@ -47,11 +48,12 @@ export function useFirebaseAuth(): UseFirebaseAuthReturn {
     setLoading(true);
     setError(null);
     try {
+      const auth = getFirebaseAuth();
       const actionCodeSettings = {
         url: window.location.href,
         handleCodeInApp: true,
       };
-      await sendSignInLinkToEmail(firebaseAuth, email, actionCodeSettings);
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
       localStorage.setItem(MAGIC_LINK_STORAGE_KEY, email);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to send magic link";
@@ -63,7 +65,8 @@ export function useFirebaseAuth(): UseFirebaseAuthReturn {
   }, []);
 
   const completeMagicLinkFn = useCallback(async (): Promise<string | null> => {
-    if (!isSignInWithEmailLink(firebaseAuth, window.location.href)) {
+    const auth = getFirebaseAuth();
+    if (!isSignInWithEmailLink(auth, window.location.href)) {
       return null;
     }
 
@@ -78,7 +81,7 @@ export function useFirebaseAuth(): UseFirebaseAuthReturn {
         throw new Error("Email is required to complete sign-in");
       }
 
-      const result = await signInWithEmailLink(firebaseAuth, email, window.location.href);
+      const result = await signInWithEmailLink(auth, email, window.location.href);
       localStorage.removeItem(MAGIC_LINK_STORAGE_KEY);
       const idToken = await result.user.getIdToken();
       return idToken;
@@ -92,11 +95,13 @@ export function useFirebaseAuth(): UseFirebaseAuthReturn {
   }, []);
 
   const signOutFirebaseFn = useCallback(async (): Promise<void> => {
-    await signOut(firebaseAuth);
+    const auth = getFirebaseAuth();
+    await signOut(auth);
   }, []);
 
   const getIdTokenFn = useCallback(async (): Promise<string | null> => {
-    const user = firebaseAuth.currentUser;
+    const auth = getFirebaseAuth();
+    const user = auth.currentUser;
     if (!user) return null;
     return user.getIdToken(true);
   }, []);
