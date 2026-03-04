@@ -8,6 +8,7 @@ import {
   LogOutIcon,
   UsersIcon,
   BuildingIcon,
+  SettingsIcon,
 } from "./ui/Icons";
 import type { ReactNode } from "react";
 
@@ -30,6 +31,7 @@ const baseNavItems: NavItem[] = [
     label: "Knowledge Base",
     icon: <DatabaseIcon size={18} />,
   },
+  { id: "settings", label: "Settings", icon: <SettingsIcon size={18} /> },
 ];
 
 const adminNavItems: NavItem[] = [

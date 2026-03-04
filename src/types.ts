@@ -11,7 +11,8 @@ export type ActiveView =
   | "knowledge-upload"
   | "knowledge-list"
   | "users"
-  | "organizations";
+  | "organizations"
+  | "settings";
 
 export interface AdminUser {
   id: string;
