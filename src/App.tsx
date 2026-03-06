@@ -10,6 +10,7 @@ import { KnowledgeListPage } from "./components/pages/KnowledgeListPage";
 import { UsersPage } from "./components/pages/UsersPage";
 import { OrganizationsPage } from "./components/pages/OrganizationsPage";
 import { SettingsPage } from "./components/pages/SettingsPage";
+import { CatalogPage } from "./components/pages/CatalogPage";
 
 function AppContent() {
   const auth = useAuth();
@@ -49,6 +50,7 @@ function AppContent() {
         {activeView === "knowledge-list" && <KnowledgeListPage />}
         {activeView === "users" && <UsersPage />}
         {activeView === "organizations" && <OrganizationsPage />}
+        {activeView === "catalogs" && <CatalogPage />}
         {activeView === "settings" && <SettingsPage />}
       </div>
     </Layout>

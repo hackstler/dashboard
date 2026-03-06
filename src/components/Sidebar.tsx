@@ -8,6 +8,7 @@ import {
   LogOutIcon,
   UsersIcon,
   BuildingIcon,
+  TagIcon,
   SettingsIcon,
 } from "./ui/Icons";
 import type { ReactNode } from "react";
@@ -41,6 +42,7 @@ const adminNavItems: NavItem[] = [
     label: "Organizations",
     icon: <BuildingIcon size={18} />,
   },
+  { id: "catalogs", label: "Catalog", icon: <TagIcon size={18} /> },
 ];
 
 interface SidebarProps {

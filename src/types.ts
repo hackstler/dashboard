@@ -12,6 +12,7 @@ export type ActiveView =
   | "knowledge-list"
   | "users"
   | "organizations"
+  | "catalogs"
   | "settings";
 
 export interface AdminUser {
