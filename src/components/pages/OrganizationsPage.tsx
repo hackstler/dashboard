@@ -352,7 +352,6 @@ export function OrganizationsPage() {
   const [newAdminUsername, setNewAdminUsername] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
   // Optional create fields
-  const [showOptional, setShowOptional] = useState(false);
   const [newName, setNewName] = useState("");
   const [newSlug, setNewSlug] = useState("");
   const [newAddress, setNewAddress] = useState("");
@@ -416,7 +415,6 @@ export function OrganizationsPage() {
     setNewOrgId("");
     setNewAdminUsername("");
     setNewAdminPassword("");
-    setShowOptional(false);
     setNewName("");
     setNewSlug("");
     setNewAddress("");
@@ -622,86 +620,74 @@ export function OrganizationsPage() {
             onChange={(e) => setNewAdminPassword(e.target.value)}
           />
 
-          {/* Collapsible optional fields */}
-          <button
-            type="button"
-            onClick={() => setShowOptional(!showOptional)}
-            className="flex items-center gap-2 text-xs text-text-muted hover:text-text transition-colors cursor-pointer w-full"
-          >
-            <span
-              className="transition-transform duration-200 inline-block"
-              style={{ transform: showOptional ? "rotate(90deg)" : "rotate(0deg)" }}
-            >
-              ▸
-            </span>
-            Company details (optional)
-          </button>
-
-          {showOptional && (
-            <div className="space-y-3 pl-1 border-l-2 border-border ml-1 animate-fade-in">
-              <div className="pl-3 space-y-3">
+          {/* Company details section */}
+          <div className="border-t border-border pt-4 mt-1">
+            <p className="text-xs font-medium text-text-muted mb-3">
+              Company details
+              <span className="text-text-dim ml-1 font-normal">— optional</span>
+            </p>
+            <div className="space-y-3">
+              <Input
+                label="Company Name"
+                placeholder="Acme Corp"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+              />
+              <Input
+                label="Slug"
+                placeholder="acme-corp"
+                value={newSlug}
+                onChange={(e) =>
+                  setNewSlug(
+                    e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")
+                  )
+                }
+              />
+              <div className="grid grid-cols-2 gap-3">
                 <Input
-                  label="Company Name"
-                  placeholder="Acme Corp"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
+                  label="NIF / Tax ID"
+                  placeholder="B12345678"
+                  value={newNif}
+                  onChange={(e) => setNewNif(e.target.value)}
                 />
                 <Input
-                  label="Slug"
-                  placeholder="acme-corp"
-                  value={newSlug}
-                  onChange={(e) =>
-                    setNewSlug(
-                      e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")
-                    )
-                  }
+                  label="Email"
+                  type="email"
+                  placeholder="info@acme.com"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
                 />
-                <div className="grid grid-cols-2 gap-3">
-                  <Input
-                    label="NIF / Tax ID"
-                    placeholder="B12345678"
-                    value={newNif}
-                    onChange={(e) => setNewNif(e.target.value)}
-                  />
-                  <Input
-                    label="Email"
-                    type="email"
-                    placeholder="info@acme.com"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                  />
-                </div>
+              </div>
+              <Input
+                label="Phone"
+                type="tel"
+                placeholder="+34 600 000 000"
+                value={newPhone}
+                onChange={(e) => setNewPhone(e.target.value)}
+              />
+              <Input
+                label="Address"
+                placeholder="123 Main St, City"
+                value={newAddress}
+                onChange={(e) => setNewAddress(e.target.value)}
+              />
+              <div className="grid grid-cols-2 gap-3">
                 <Input
-                  label="Phone"
-                  type="tel"
-                  placeholder="+34 600 000 000"
-                  value={newPhone}
-                  onChange={(e) => setNewPhone(e.target.value)}
+                  label="VAT Rate (%)"
+                  type="number"
+                  placeholder="21"
+                  value={newVatRate}
+                  onChange={(e) => setNewVatRate(e.target.value)}
                 />
                 <Input
-                  label="Address"
-                  placeholder="123 Main St, City"
-                  value={newAddress}
-                  onChange={(e) => setNewAddress(e.target.value)}
+                  label="Currency"
+                  placeholder="€"
+                  value={newCurrency}
+                  onChange={(e) => setNewCurrency(e.target.value)}
                 />
-                <div className="grid grid-cols-2 gap-3">
-                  <Input
-                    label="VAT Rate (%)"
-                    type="number"
-                    placeholder="21"
-                    value={newVatRate}
-                    onChange={(e) => setNewVatRate(e.target.value)}
-                  />
-                  <Input
-                    label="Currency"
-                    placeholder="€"
-                    value={newCurrency}
-                    onChange={(e) => setNewCurrency(e.target.value)}
-                  />
-                </div>
               </div>
             </div>
-          )}
+          </div>
 
           <div className="flex justify-end gap-3 pt-2">
             <Button
