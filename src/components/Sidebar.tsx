@@ -38,11 +38,19 @@ const baseNavItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
   { id: "users", label: "Users", icon: <UsersIcon size={18} /> },
   {
+    id: "whatsapp-connections",
+    label: "WhatsApp Mgmt",
+    icon: <MessageCircleIcon size={18} />,
+  },
+  { id: "catalogs", label: "Catalog", icon: <TagIcon size={18} /> },
+];
+
+const superAdminNavItems: NavItem[] = [
+  {
     id: "organizations",
     label: "Organizations",
     icon: <BuildingIcon size={18} />,
   },
-  { id: "catalogs", label: "Catalog", icon: <TagIcon size={18} /> },
 ];
 
 interface SidebarProps {
@@ -106,7 +114,7 @@ export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
               </button>
             );
           })}
-          {user?.role === "admin" && (
+          {(user?.role === "admin" || user?.role === "super_admin") && (
             <>
               <div className="border-t border-border my-2" />
               {adminNavItems.map((item, i) => {
@@ -116,6 +124,30 @@ export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
                     key={item.id}
                     onClick={() => handleNav(item.id)}
                     className={`animate-slide-in-left stagger-${baseNavItems.length + i + 1} w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-[var(--radius-md)] transition-all duration-200 cursor-pointer relative ${
+                      active
+                        ? "bg-accent-dim text-accent font-medium shadow-[var(--shadow-nav-active)] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-accent before:rounded-full before:shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                        : "text-text-muted hover:bg-surface-hover hover:text-text hover:translate-x-0.5"
+                    }`}
+                  >
+                    <span className={`shrink-0 transition-transform duration-200 ${active ? "scale-110" : ""}`}>
+                      {item.icon}
+                    </span>
+                    {item.label}
+                  </button>
+                );
+              })}
+            </>
+          )}
+          {user?.role === "super_admin" && (
+            <>
+              <div className="border-t border-border my-2" />
+              {superAdminNavItems.map((item, i) => {
+                const active = activeView === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNav(item.id)}
+                    className={`animate-slide-in-left stagger-${baseNavItems.length + adminNavItems.length + i + 1} w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-[var(--radius-md)] transition-all duration-200 cursor-pointer relative ${
                       active
                         ? "bg-accent-dim text-accent font-medium shadow-[var(--shadow-nav-active)] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-accent before:rounded-full before:shadow-[0_0_8px_rgba(59,130,246,0.5)]"
                         : "text-text-muted hover:bg-surface-hover hover:text-text hover:translate-x-0.5"

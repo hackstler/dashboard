@@ -34,7 +34,7 @@ export function UsersPage() {
   const [newPassword, setNewPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newOrgId, setNewOrgId] = useState("");
-  const [newRole, setNewRole] = useState<"admin" | "user">("user");
+  const [newRole, setNewRole] = useState<"admin" | "user" | "super_admin">("user");
 
   // Delete modal
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
@@ -211,7 +211,7 @@ export function UsersPage() {
                   </span>
                 </div>
               </div>
-              <Badge variant={u.role === "admin" ? "info" : "default"}>
+              <Badge variant={u.role === "admin" ? "info" : u.role === "super_admin" ? "info" : "default"}>
                 {u.role}
               </Badge>
               <button
@@ -283,12 +283,13 @@ export function UsersPage() {
             <select
               value={newRole}
               onChange={(e) =>
-                setNewRole(e.target.value as "admin" | "user")
+                setNewRole(e.target.value as "admin" | "user" | "super_admin")
               }
               className="w-full bg-surface border border-border text-text text-sm px-3 py-2 rounded-[var(--radius-md)] outline-none focus:border-accent/50 cursor-pointer"
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>
+              <option value="super_admin">Super Admin</option>
             </select>
           </div>
           <div className="flex justify-end gap-3 pt-2">

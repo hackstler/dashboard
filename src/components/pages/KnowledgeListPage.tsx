@@ -62,7 +62,7 @@ export function KnowledgeListPage() {
   const [deleteTarget, setDeleteTarget] = useState<DocumentSource | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
 
   const handleDelete = async () => {
     if (!deleteTarget) return;

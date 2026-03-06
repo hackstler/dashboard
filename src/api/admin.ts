@@ -7,6 +7,7 @@ import type {
   UpdateOrganizationData,
   CreateUserData,
   InviteUserData,
+  WhatsAppConnection,
 } from "../types";
 
 export type {
@@ -74,4 +75,13 @@ export async function deleteOrganization(orgId: string): Promise<void> {
     `/admin/organizations/${encodeURIComponent(orgId)}`,
     { method: "DELETE" }
   );
+}
+
+export async function getWhatsappConnections(): Promise<WhatsAppConnection[]> {
+  const json = await apiRequest<{ data: WhatsAppConnection[] }>("/admin/whatsapp/sessions");
+  return json.data;
+}
+
+export async function revokeWhatsappConnection(userId: string): Promise<void> {
+  await apiRequest(`/admin/whatsapp/sessions/${userId}/revoke`, { method: "POST" });
 }

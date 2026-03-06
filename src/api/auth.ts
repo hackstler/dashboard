@@ -47,7 +47,7 @@ export async function getMe(): Promise<User | null> {
       id: data.userId,
       username: data.username,
       orgId: data.orgId,
-      role: (data.role === "admin" ? "admin" : "user") as User["role"],
+      role: (data.role === "admin" ? "admin" : data.role === "super_admin" ? "super_admin" : "user") as User["role"],
     };
   } catch {
     return null;

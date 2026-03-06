@@ -29,6 +29,7 @@ Actions that modify or delete data should have confirmation:
 - Delete operations (documents)
 - Look for `onClick` handlers that call destructive API functions
 - Verify a confirmation modal or explicit UX flow exists
+- **NEVER** use `window.confirm()` or bare `confirm()` — use styled `ConfirmDeleteModal` or equivalent `<Modal>` with `AlertCircleIcon` warning
 
 ### 3. Async Feedback
 

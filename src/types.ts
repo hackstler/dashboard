@@ -4,7 +4,7 @@ export interface User {
   id: string;
   username: string;
   orgId: string;
-  role: "admin" | "user";
+  role: "admin" | "user" | "super_admin";
 }
 
 export type AuthStrategyType = "password" | "firebase";
@@ -29,6 +29,7 @@ export type ActiveView =
   | "users"
   | "organizations"
   | "catalogs"
+  | "whatsapp-connections"
   | "settings";
 
 // ── Admin ───────────────────────────────────────────────────────────────────
@@ -45,13 +46,13 @@ export interface CreateUserData {
   username: string;
   password: string;
   orgId: string;
-  role: "admin" | "user";
+  role: "admin" | "user" | "super_admin";
 }
 
 export interface InviteUserData {
   email: string;
   orgId: string;
-  role: "admin" | "user";
+  role: "admin" | "user" | "super_admin";
 }
 
 // ── Organizations ───────────────────────────────────────────────────────────
@@ -233,4 +234,16 @@ export interface Toast {
   id: string;
   message: string;
   type: ToastType;
+}
+
+// ── WhatsApp Connections ────────────────────────────────────────────────────
+
+export interface WhatsAppConnection {
+  id: string;
+  userId: string;
+  username: string | null;
+  orgId: string;
+  status: "connected" | "pending" | "qr" | "disconnected";
+  phone: string | null;
+  updatedAt: string;
 }

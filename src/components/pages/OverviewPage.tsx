@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useApp } from "../../context/AppContext";
 import { useChannels } from "../../hooks/useChannels";
 import { useDocuments } from "../../hooks/useDocuments";
-import { useOrganizations } from "../../hooks/useOrganizations";
+import { apiRequest } from "../../api/http";
 import { useAnimatedCounter } from "../../hooks/useAnimatedCounter";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
@@ -16,15 +16,14 @@ import {
 
 export function OverviewPage() {
   const { user, setActiveView } = useApp();
-  const { getOrganization } = useOrganizations();
   const [orgName, setOrgName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.orgId) return;
-    getOrganization(user.orgId)
-      .then((org) => setOrgName(org.name))
+    apiRequest<{ data: { name: string } | null }>("/org/me")
+      .then((res) => setOrgName(res.data?.name ?? user.orgId))
       .catch(() => {});
-  }, [user?.orgId, getOrganization]);
+  }, [user?.orgId]);
   const { status: waStatus, loading: waLoading } = useChannels(5000);
   const { documents: docs, loading: docsLoading } = useDocuments({
     pollingInterval: 10000,

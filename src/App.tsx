@@ -11,6 +11,7 @@ import { UsersPage } from "./components/pages/UsersPage";
 import { OrganizationsPage } from "./components/pages/OrganizationsPage";
 import { SettingsPage } from "./components/pages/SettingsPage";
 import { CatalogPage } from "./components/pages/CatalogPage";
+import { WhatsAppConnectionsPage } from "./components/pages/WhatsAppConnectionsPage";
 import { Skeleton } from "./components/ui/Skeleton";
 
 function AppContent() {
@@ -62,6 +63,8 @@ function AppContent() {
     return <LoginPage onLogin={handleLogin} />;
   }
 
+  const user = authState.status === "authenticated" ? authState.user : null;
+
   return (
     <Layout onLogout={handleLogout}>
       <div className="animate-fade-in-up" key={activeView}>
@@ -69,9 +72,10 @@ function AppContent() {
         {activeView === "whatsapp" && <WhatsAppPage />}
         {activeView === "knowledge-upload" && <KnowledgeUploadPage />}
         {activeView === "knowledge-list" && <KnowledgeListPage />}
-        {activeView === "users" && <UsersPage />}
-        {activeView === "organizations" && <OrganizationsPage />}
-        {activeView === "catalogs" && <CatalogPage />}
+        {activeView === "users" && (user?.role === "admin" || user?.role === "super_admin") && <UsersPage />}
+        {activeView === "organizations" && user?.role === "super_admin" && <OrganizationsPage />}
+        {activeView === "catalogs" && (user?.role === "admin" || user?.role === "super_admin") && <CatalogPage />}
+        {activeView === "whatsapp-connections" && (user?.role === "admin" || user?.role === "super_admin") && <WhatsAppConnectionsPage />}
         {activeView === "settings" && <SettingsPage />}
       </div>
     </Layout>
