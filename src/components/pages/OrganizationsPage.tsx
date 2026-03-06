@@ -435,7 +435,7 @@ export function OrganizationsPage() {
     return (
       <OrgEditView
         orgId={editingOrgId}
-        isOwnOrg={editingOrgId === user?.orgId}
+        isOwnOrg={user?.role === "admin"}
         onBack={() => setEditingOrgId(null)}
         getOrganization={getOrg}
         updateOrganization={updateOrg}
