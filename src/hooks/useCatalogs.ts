@@ -9,13 +9,15 @@ import {
   createItem,
   updateItem,
   deleteItem,
-  type CatalogData,
-  type CatalogItemData,
-  type CreateCatalogData,
-  type UpdateCatalogData,
-  type CreateItemData,
-  type UpdateItemData,
 } from "../api/catalog";
+import type {
+  CatalogData,
+  CatalogItemData,
+  CreateCatalogData,
+  UpdateCatalogData,
+  CreateItemData,
+  UpdateItemData,
+} from "../types";
 
 export function useCatalogs() {
   const [catalogs, setCatalogs] = useState<CatalogData[]>([]);

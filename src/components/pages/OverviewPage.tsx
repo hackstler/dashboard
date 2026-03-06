@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useApp } from "../../context/AppContext";
 import { useChannels } from "../../hooks/useChannels";
 import { useDocuments } from "../../hooks/useDocuments";
+import { useOrganizations } from "../../hooks/useOrganizations";
 import { useAnimatedCounter } from "../../hooks/useAnimatedCounter";
-import { getOrganization } from "../../api/admin";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
@@ -16,6 +16,7 @@ import {
 
 export function OverviewPage() {
   const { user, setActiveView } = useApp();
+  const { getOrganization } = useOrganizations();
   const [orgName, setOrgName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,7 +24,7 @@ export function OverviewPage() {
     getOrganization(user.orgId)
       .then((org) => setOrgName(org.name))
       .catch(() => {});
-  }, [user?.orgId]);
+  }, [user?.orgId, getOrganization]);
   const { status: waStatus, loading: waLoading } = useChannels(5000);
   const { documents: docs, loading: docsLoading } = useDocuments({
     pollingInterval: 10000,

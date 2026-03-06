@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { login, logout, getMe, isLoggedIn } from "../api/auth";
-import type { LoginResponse } from "../api/auth";
-import type { User } from "../types";
+import type { User, LoginResponse } from "../types";
 
 interface UseAuthReturn {
   login: (username: string, password: string) => Promise<LoginResponse>;

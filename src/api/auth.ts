@@ -1,37 +1,23 @@
-import type { User } from "../types";
+import { apiRequest } from "./http";
+import type { User, LoginResponse } from "../types";
 
-const BASE_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3000";
+export type { AuthStrategyType, LoginResponse } from "../types";
 
-export type AuthStrategyType = "password" | "firebase";
-
-export function getAuthStrategy(): AuthStrategyType {
+export function getAuthStrategy(): "password" | "firebase" {
   const raw = import.meta.env["VITE_AUTH_STRATEGY"];
   if (raw === "firebase") return "firebase";
   return "password";
-}
-
-export interface LoginResponse {
-  token: string;
-  user: { id: string; email: string; orgId: string; role: string };
 }
 
 export async function login(
   username: string,
   password: string
 ): Promise<LoginResponse> {
-  const res = await fetch(`${BASE_URL}/auth/login`, {
+  const data = await apiRequest<LoginResponse>("/auth/login", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
+    body: { username, password },
+    public: true,
   });
-  if (!res.ok) {
-    const err = (await res.json().catch(() => ({ error: "Login failed" }))) as {
-      error: string;
-      message?: string;
-    };
-    throw new Error(err.message ?? err.error);
-  }
-  const data = (await res.json()) as LoginResponse;
   localStorage.setItem("auth_token", data.token);
   return data;
 }
@@ -39,42 +25,33 @@ export async function login(
 export async function loginWithFirebaseToken(
   idToken: string
 ): Promise<LoginResponse> {
-  const res = await fetch(`${BASE_URL}/auth/login`, {
+  const data = await apiRequest<LoginResponse>("/auth/login", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ idToken }),
+    body: { idToken },
+    public: true,
   });
-  if (!res.ok) {
-    const err = (await res.json().catch(() => ({ error: "Login failed" }))) as {
-      error: string;
-      message?: string;
-    };
-    throw new Error(err.message ?? err.error);
-  }
-  const data = (await res.json()) as LoginResponse;
   localStorage.setItem("auth_token", data.token);
   return data;
 }
 
 export async function getMe(): Promise<User | null> {
-  const token = localStorage.getItem("auth_token");
-  if (!token) return null;
-  const res = await fetch(`${BASE_URL}/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) return null;
-  const data = (await res.json()) as {
-    userId: string;
-    username: string;
-    orgId: string;
-    role?: string;
-  };
-  return {
-    id: data.userId,
-    username: data.username,
-    orgId: data.orgId,
-    role: (data.role === "admin" ? "admin" : "user") as User["role"],
-  };
+  if (!isLoggedIn()) return null;
+  try {
+    const data = await apiRequest<{
+      userId: string;
+      username: string;
+      orgId: string;
+      role?: string;
+    }>("/auth/me");
+    return {
+      id: data.userId,
+      username: data.username,
+      orgId: data.orgId,
+      role: (data.role === "admin" ? "admin" : "user") as User["role"],
+    };
+  } catch {
+    return null;
+  }
 }
 
 export function logout(): void {

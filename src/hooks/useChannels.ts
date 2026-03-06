@@ -6,7 +6,7 @@ import {
   enableWhatsapp,
   disconnectWhatsapp,
 } from "../api/channels";
-import type { WhatsAppStatus } from "../api/channels";
+import type { WhatsAppStatus } from "../types";
 
 interface UseChannelsReturn {
   status: WhatsAppStatus | null;

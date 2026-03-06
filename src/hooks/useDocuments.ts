@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef } from "react";
+import { usePolling } from "./usePolling";
 import {
   listDocuments,
   deleteDocument,
@@ -26,73 +27,43 @@ interface UseDocumentsReturn {
 }
 
 export function useDocuments(options: UseDocumentsOptions = {}): UseDocumentsReturn {
-  const { contentType, search, pollingInterval } = options;
-  const [documents, setDocuments] = useState<DocumentSource[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const mountedRef = useRef(true);
+  const { contentType, search, pollingInterval = 30000 } = options;
 
-  const doFetch = useCallback(async () => {
-    try {
-      const filters: { contentType?: string; search?: string } = {};
-      if (contentType && contentType !== "all") filters.contentType = contentType;
-      if (search?.trim()) filters.search = search.trim();
-      const data = await listDocuments(filters);
-      if (mountedRef.current) {
-        setDocuments(data);
-        setError(null);
-      }
-    } catch (err) {
-      if (mountedRef.current) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load documents"
-        );
-      }
-    } finally {
-      if (mountedRef.current) setLoading(false);
-    }
+  const fetcher = useCallback(async () => {
+    const filters: { contentType?: string; search?: string } = {};
+    if (contentType && contentType !== "all") filters.contentType = contentType;
+    if (search?.trim()) filters.search = search.trim();
+    return listDocuments(filters);
   }, [contentType, search]);
 
+  const { data, loading, error, refetch } = usePolling<DocumentSource[]>(
+    fetcher,
+    pollingInterval
+  );
+
+  // Re-fetch when filters change (skip initial mount — usePolling handles that)
+  const isInitialRef = useRef(true);
   useEffect(() => {
-    mountedRef.current = true;
-    setLoading(true);
-    doFetch();
-
-    if (!pollingInterval) {
-      return () => {
-        mountedRef.current = false;
-      };
+    if (isInitialRef.current) {
+      isInitialRef.current = false;
+      return;
     }
-
-    const id = setInterval(() => {
-      if (!document.hidden) doFetch();
-    }, pollingInterval);
-
-    const onVisibility = () => {
-      if (!document.hidden) doFetch();
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-
-    return () => {
-      mountedRef.current = false;
-      clearInterval(id);
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
-  }, [doFetch, pollingInterval]);
+    refetch();
+  }, [contentType, search, refetch]);
 
   const removeDocument = useCallback(
     async (id: string) => {
       await deleteDocument(id);
-      setDocuments((prev) => prev.filter((d) => d.id !== id));
+      refetch();
     },
-    []
+    [refetch]
   );
 
   return {
-    documents,
+    documents: data ?? [],
     loading,
     error,
-    refetch: doFetch,
+    refetch,
     deleteDocument: removeDocument,
     uploadFile,
     uploadUrl,

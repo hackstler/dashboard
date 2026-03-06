@@ -5,7 +5,7 @@ import {
   getGoogleAuthorizeUrl,
   disconnectGoogle,
 } from "../api/google";
-import type { GoogleConnectionStatus } from "../api/google";
+import type { GoogleConnectionStatus } from "../types";
 
 interface UseGoogleConnectionReturn {
   status: GoogleConnectionStatus | null;

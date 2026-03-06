@@ -1,10 +1,11 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
-import type { User, ActiveView, Toast, ToastType } from "../types";
+import type { User, ActiveView, Toast, ToastType, AuthState } from "../types";
 
 interface AppContextValue {
+  authState: AuthState;
+  setAuthState: (state: AuthState) => void;
   user: User | null;
-  setUser: (user: User | null) => void;
   activeView: ActiveView;
   setActiveView: (view: ActiveView) => void;
   toasts: Toast[];
@@ -17,7 +18,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 let toastId = 0;
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [authState, setAuthState] = useState<AuthState>({ status: "loading" });
   const [activeView, setActiveView] = useState<ActiveView>("overview");
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -33,11 +34,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const user = authState.status === "authenticated" ? authState.user : null;
+
   return (
     <AppContext.Provider
       value={{
+        authState,
+        setAuthState,
         user,
-        setUser,
         activeView,
         setActiveView,
         toasts,

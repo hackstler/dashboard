@@ -1,47 +1,26 @@
-const BASE_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3000";
+import { apiRequest, apiRequestNullable } from "./http";
+import type { WhatsAppStatus } from "../types";
 
-function authHeaders(): HeadersInit {
-  const token = localStorage.getItem("auth_token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-export interface WhatsAppStatus {
-  status: "not_enabled" | "pending" | "disconnected" | "qr" | "connected";
-  phone: string | null;
-  updatedAt?: string;
-}
+export type { WhatsAppStatus } from "../types";
 
 export async function getWhatsappStatus(): Promise<WhatsAppStatus> {
-  const res = await fetch(`${BASE_URL}/channels/whatsapp/status`, {
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error(`Status ${res.status}`);
-  const json = (await res.json()) as { data: WhatsAppStatus };
+  const json = await apiRequest<{ data: WhatsAppStatus }>(
+    "/channels/whatsapp/status"
+  );
   return json.data;
 }
 
 export async function getWhatsappQr(): Promise<string | null> {
-  const res = await fetch(`${BASE_URL}/channels/whatsapp/qr`, {
-    headers: authHeaders(),
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`QR ${res.status}`);
-  const json = (await res.json()) as { data: { qrData: string } };
-  return json.data.qrData;
+  const json = await apiRequestNullable<{ data: { qrData: string } }>(
+    "/channels/whatsapp/qr"
+  );
+  return json?.data.qrData ?? null;
 }
 
 export async function enableWhatsapp(): Promise<void> {
-  const res = await fetch(`${BASE_URL}/channels/whatsapp/enable`, {
-    method: "POST",
-    headers: { ...authHeaders(), "Content-Type": "application/json" },
-  });
-  if (!res.ok) throw new Error(`Enable ${res.status}`);
+  await apiRequest("/channels/whatsapp/enable", { method: "POST" });
 }
 
 export async function disconnectWhatsapp(): Promise<void> {
-  const res = await fetch(`${BASE_URL}/channels/whatsapp/disconnect`, {
-    method: "POST",
-    headers: { ...authHeaders(), "Content-Type": "application/json" },
-  });
-  if (!res.ok) throw new Error(`Disconnect ${res.status}`);
+  await apiRequest("/channels/whatsapp/disconnect", { method: "POST" });
 }

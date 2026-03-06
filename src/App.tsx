@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { AppProvider, useApp } from "./context/AppContext";
 import { LoginPage } from "./components/pages/LoginPage";
@@ -11,34 +11,55 @@ import { UsersPage } from "./components/pages/UsersPage";
 import { OrganizationsPage } from "./components/pages/OrganizationsPage";
 import { SettingsPage } from "./components/pages/SettingsPage";
 import { CatalogPage } from "./components/pages/CatalogPage";
+import { Skeleton } from "./components/ui/Skeleton";
 
 function AppContent() {
   const auth = useAuth();
-  const [loggedIn, setLoggedIn] = useState(auth.isLoggedIn());
-  const { setUser, activeView } = useApp();
+  const { authState, setAuthState, activeView } = useApp();
 
   useEffect(() => {
-    if (loggedIn) {
-      auth.getMe().then((me) => {
-        if (me) {
-          setUser(me);
-        } else {
-          auth.logout();
-          setLoggedIn(false);
-        }
-      });
+    if (!auth.isLoggedIn()) {
+      setAuthState({ status: "unauthenticated" });
+      return;
     }
+    auth.getMe().then((me) => {
+      if (me) {
+        setAuthState({ status: "authenticated", user: me });
+      } else {
+        auth.logout();
+        setAuthState({ status: "unauthenticated" });
+      }
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loggedIn]);
+  }, []);
+
+  const handleLogin = () => {
+    auth.getMe().then((me) => {
+      if (me) {
+        setAuthState({ status: "authenticated", user: me });
+      }
+    });
+  };
 
   const handleLogout = () => {
     auth.logout();
-    setUser(null);
-    setLoggedIn(false);
+    setAuthState({ status: "unauthenticated" });
   };
 
-  if (!loggedIn) {
-    return <LoginPage onLogin={() => setLoggedIn(true)} />;
+  if (authState.status === "loading") {
+    return (
+      <div className="min-h-screen bg-base flex items-center justify-center">
+        <div className="space-y-4 w-80">
+          <Skeleton className="h-8 w-48 mx-auto" />
+          <Skeleton className="h-4 w-64 mx-auto" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (authState.status === "unauthenticated") {
+    return <LoginPage onLogin={handleLogin} />;
   }
 
   return (

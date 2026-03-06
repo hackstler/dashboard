@@ -5,10 +5,14 @@ import {
   deleteOrganization,
   getOrganization,
   updateOrganization,
-  type CreateOrganizationData,
-  type UpdateOrganizationData,
 } from "../api/admin";
-import type { AdminUser, Organization, OrganizationDetail } from "../types";
+import type {
+  AdminUser,
+  Organization,
+  OrganizationDetail,
+  CreateOrganizationData,
+  UpdateOrganizationData,
+} from "../types";
 
 interface UseOrganizationsReturn {
   organizations: Organization[];

@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useCatalogs } from "../../hooks/useCatalogs";
-import type { CatalogData, CatalogItemData } from "../../api/catalog";
+import type { CatalogData, CatalogItemData } from "../../types";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "../ui/EmptyState";
-import { PlusIcon, TrashIcon, EditIcon, TagIcon } from "../ui/Icons";
+import { PlusIcon, TrashIcon, EditIcon, TagIcon, AlertCircleIcon } from "../ui/Icons";
 
 export function CatalogPage() {
   const {
@@ -31,6 +31,10 @@ export function CatalogPage() {
   const [showCreateItem, setShowCreateItem] = useState(false);
   const [editingItem, setEditingItem] = useState<CatalogItemData | null>(null);
   const [editingCatalog, setEditingCatalog] = useState<CatalogData | null>(null);
+  const [catalogToDelete, setCatalogToDelete] = useState<string | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<{ catalogId: string; itemId: string } | null>(null);
+  const [deletingCatalog, setDeletingCatalog] = useState(false);
+  const [deletingItem, setDeletingItem] = useState(false);
 
   const selectedCatalog = catalogs.find((c) => c.id === selectedCatalogId);
 
@@ -121,11 +125,7 @@ export function CatalogPage() {
                     variant="danger"
                     size="sm"
                     icon={<TrashIcon size={14} />}
-                    onClick={() => {
-                      if (confirm("Delete this catalog and all its items?")) {
-                        deleteCatalog(catalog.id);
-                      }
-                    }}
+                    onClick={() => setCatalogToDelete(catalog.id)}
                   />
                 </div>
               </div>
@@ -206,11 +206,7 @@ export function CatalogPage() {
                               variant="danger"
                               size="sm"
                               icon={<TrashIcon size={14} />}
-                              onClick={() => {
-                                if (confirm("Delete this item?")) {
-                                  deleteItem(selectedCatalogId!, item.id);
-                                }
-                              }}
+                              onClick={() => setItemToDelete({ catalogId: selectedCatalogId!, itemId: item.id })}
                             />
                           </div>
                         </td>
@@ -271,6 +267,44 @@ export function CatalogPage() {
           }}
         />
       )}
+
+      {/* Delete Catalog Confirmation */}
+      <ConfirmDeleteModal
+        open={catalogToDelete !== null}
+        onClose={() => setCatalogToDelete(null)}
+        onConfirm={async () => {
+          if (!catalogToDelete) return;
+          setDeletingCatalog(true);
+          try {
+            await deleteCatalog(catalogToDelete);
+            setCatalogToDelete(null);
+          } finally {
+            setDeletingCatalog(false);
+          }
+        }}
+        loading={deletingCatalog}
+        title="Delete Catalog"
+        message="This will permanently delete this catalog and all its items."
+      />
+
+      {/* Delete Item Confirmation */}
+      <ConfirmDeleteModal
+        open={itemToDelete !== null}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={async () => {
+          if (!itemToDelete) return;
+          setDeletingItem(true);
+          try {
+            await deleteItem(itemToDelete.catalogId, itemToDelete.itemId);
+            setItemToDelete(null);
+          } finally {
+            setDeletingItem(false);
+          }
+        }}
+        loading={deletingItem}
+        title="Delete Item"
+        message="This item will be permanently deleted."
+      />
     </div>
   );
 }
@@ -491,6 +525,48 @@ function CreateItemModal({
             disabled={!name.trim() || !price}
           >
             Add Item
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Confirm Delete Modal ──────────────────────────────────────────────────
+
+function ConfirmDeleteModal({
+  open,
+  onClose,
+  onConfirm,
+  loading,
+  title,
+  message,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
+  loading: boolean;
+  title: string;
+  message: string;
+}) {
+  return (
+    <Modal open={open} onClose={onClose} title={title}>
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 p-3 bg-red-muted/50 border border-red/20 rounded-[var(--radius-md)]">
+          <AlertCircleIcon size={18} className="text-red shrink-0 mt-0.5" />
+          <p className="text-sm text-red">{message}</p>
+        </div>
+        <div className="flex justify-end gap-3">
+          <Button variant="secondary" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={onConfirm}
+            loading={loading}
+          >
+            Delete
           </Button>
         </div>
       </div>

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { listUsers, createUser, deleteUser } from "../api/admin";
-import type { CreateUserData, InviteUserData } from "../api/admin";
-import type { AdminUser } from "../types";
+import type { AdminUser, CreateUserData, InviteUserData } from "../types";
 
 interface UseUsersReturn {
   users: AdminUser[];
