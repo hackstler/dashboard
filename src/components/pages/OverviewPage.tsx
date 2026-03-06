@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { useApp } from "../../context/AppContext";
 import { useChannels } from "../../hooks/useChannels";
 import { useDocuments } from "../../hooks/useDocuments";
 import { useAnimatedCounter } from "../../hooks/useAnimatedCounter";
+import { getOrganization } from "../../api/admin";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
@@ -14,6 +16,14 @@ import {
 
 export function OverviewPage() {
   const { user, setActiveView } = useApp();
+  const [orgName, setOrgName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.orgId) return;
+    getOrganization(user.orgId)
+      .then((org) => setOrgName(org.name))
+      .catch(() => {});
+  }, [user?.orgId]);
   const { status: waStatus, loading: waLoading } = useChannels(5000);
   const { documents: docs, loading: docsLoading } = useDocuments({
     pollingInterval: 10000,
@@ -192,11 +202,13 @@ export function OverviewPage() {
             </Badge>
           </div>
           <div className="mb-2">
-            <p className="text-xl sm:text-3xl font-bold text-text-bright tracking-tight font-mono">
-              {user?.orgId}
+            <p className="text-xl sm:text-3xl font-bold text-text-bright tracking-tight">
+              {orgName || user?.orgId}
             </p>
           </div>
-          <p className="text-xs text-text-muted mb-4">Organization</p>
+          <p className="text-xs text-text-muted font-mono mb-4">
+            {orgName ? user?.orgId : "Organization"}
+          </p>
           <p className="text-xs text-text-dim">
             {user?.role === "admin"
               ? "Full access to all resources"
