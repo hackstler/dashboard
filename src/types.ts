@@ -55,6 +55,12 @@ export interface InviteUserData {
   role: "admin" | "user" | "super_admin";
 }
 
+export interface UpdateUserData {
+  email?: string;
+  role?: string;
+  password?: string;
+}
+
 // ── Organizations ───────────────────────────────────────────────────────────
 
 export interface Organization {

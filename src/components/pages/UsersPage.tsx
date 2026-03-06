@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useApp } from "../../context/AppContext";
+import { usePermissions } from "../../hooks/usePermissions";
 import { useUsers } from "../../hooks/useUsers";
 import { getAuthStrategy } from "../../api/auth";
 import type { AdminUser } from "../../types";
@@ -10,11 +11,12 @@ import { Input } from "../ui/Input";
 import { Modal } from "../ui/Modal";
 import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "../ui/EmptyState";
-import { SearchIcon, TrashIcon, UsersIcon, PlusIcon } from "../ui/Icons";
+import { SearchIcon, TrashIcon, UsersIcon, PlusIcon, EditIcon } from "../ui/Icons";
 import { formatDate } from "../../utils/format";
 
 export function UsersPage() {
   const { user, addToast } = useApp();
+  const { can } = usePermissions();
   const strategy = getAuthStrategy();
   const [search, setSearch] = useState("");
   const [orgFilter, setOrgFilter] = useState("");
@@ -24,6 +26,7 @@ export function UsersPage() {
     loading,
     error,
     createUser,
+    editUser,
     deleteUser,
   } = useUsers({ orgId: orgFilter, search });
 
@@ -35,6 +38,13 @@ export function UsersPage() {
   const [newEmail, setNewEmail] = useState("");
   const [newOrgId, setNewOrgId] = useState("");
   const [newRole, setNewRole] = useState<"admin" | "user" | "super_admin">("user");
+
+  // Edit modal
+  const [editTarget, setEditTarget] = useState<AdminUser | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editEmail, setEditEmail] = useState("");
+  const [editRole, setEditRole] = useState<"admin" | "user" | "super_admin">("user");
+  const [editPassword, setEditPassword] = useState("");
 
   // Delete modal
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
@@ -83,6 +93,41 @@ export function UsersPage() {
     }
   };
 
+  const handleEdit = async () => {
+    if (!editTarget) return;
+    setEditing(true);
+    try {
+      const data: { email?: string; role?: string; password?: string } = {};
+      if (editEmail !== editTarget.email) data.email = editEmail;
+      if (editRole !== editTarget.role) data.role = editRole;
+      if (editPassword) data.password = editPassword;
+      await editUser(editTarget.id, data);
+      addToast("User updated", "success");
+      setEditTarget(null);
+      resetEditForm();
+    } catch (err) {
+      addToast(
+        err instanceof Error ? err.message : "Failed to update user",
+        "error"
+      );
+    } finally {
+      setEditing(false);
+    }
+  };
+
+  const openEditModal = (u: AdminUser) => {
+    setEditTarget(u);
+    setEditEmail(u.email);
+    setEditRole(u.role as "admin" | "user" | "super_admin");
+    setEditPassword("");
+  };
+
+  const resetEditForm = () => {
+    setEditEmail("");
+    setEditRole("user");
+    setEditPassword("");
+  };
+
   const resetCreateForm = () => {
     setNewUsername("");
     setNewPassword("");
@@ -109,14 +154,16 @@ export function UsersPage() {
             Manage users across all organizations.
           </p>
         </div>
-        <Button
-          variant="primary"
-          size="sm"
-          icon={<PlusIcon size={16} />}
-          onClick={() => setShowCreate(true)}
-        >
-          {strategy === "firebase" ? "Invite User" : "Create User"}
-        </Button>
+        {can("create_org_users") && (
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<PlusIcon size={16} />}
+            onClick={() => setShowCreate(true)}
+          >
+            {strategy === "firebase" ? "Invite User" : "Create User"}
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-3 mb-6 animate-fade-in-up stagger-1">
@@ -214,24 +261,35 @@ export function UsersPage() {
               <Badge variant={u.role === "admin" ? "info" : u.role === "super_admin" ? "info" : "default"}>
                 {u.role}
               </Badge>
-              <button
-                onClick={() => {
-                  if (isSelf(u)) {
-                    addToast("Cannot delete your own account", "error");
-                    return;
-                  }
-                  setDeleteTarget(u);
-                }}
-                className={`btn-press transition-all cursor-pointer p-1.5 rounded-[var(--radius-sm)] ${
-                  isSelf(u)
-                    ? "text-text-dim/30 cursor-not-allowed"
-                    : "text-text-dim hover:text-red hover:bg-red-muted"
-                }`}
-                title={isSelf(u) ? "Cannot delete yourself" : "Delete"}
-                disabled={isSelf(u)}
-              >
-                <TrashIcon size={16} />
-              </button>
+              {can("edit_org_users") && (
+                <button
+                  onClick={() => openEditModal(u)}
+                  className="btn-press transition-all cursor-pointer p-1.5 rounded-[var(--radius-sm)] text-text-dim hover:text-accent hover:bg-accent/10"
+                  title="Edit"
+                >
+                  <EditIcon size={16} />
+                </button>
+              )}
+              {can("delete_org_users") && (
+                <button
+                  onClick={() => {
+                    if (isSelf(u)) {
+                      addToast("Cannot delete your own account", "error");
+                      return;
+                    }
+                    setDeleteTarget(u);
+                  }}
+                  className={`btn-press transition-all cursor-pointer p-1.5 rounded-[var(--radius-sm)] ${
+                    isSelf(u)
+                      ? "text-text-dim/30 cursor-not-allowed"
+                      : "text-text-dim hover:text-red hover:bg-red-muted"
+                  }`}
+                  title={isSelf(u) ? "Cannot delete yourself" : "Delete"}
+                  disabled={isSelf(u)}
+                >
+                  <TrashIcon size={16} />
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -311,6 +369,68 @@ export function UsersPage() {
               disabled={isCreateDisabled}
             >
               {strategy === "firebase" ? "Invite" : "Create"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit User Modal */}
+      <Modal
+        open={editTarget !== null}
+        onClose={() => {
+          setEditTarget(null);
+          resetEditForm();
+        }}
+        title="Edit User"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Email"
+            type="email"
+            placeholder="user@example.com"
+            value={editEmail}
+            onChange={(e) => setEditEmail(e.target.value)}
+          />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-text-muted">Role</label>
+            <select
+              value={editRole}
+              onChange={(e) =>
+                setEditRole(e.target.value as "admin" | "user" | "super_admin")
+              }
+              className="w-full bg-surface border border-border text-text text-sm px-3 py-2 rounded-[var(--radius-md)] outline-none focus:border-accent/50 cursor-pointer"
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+              <option value="super_admin">Super Admin</option>
+            </select>
+          </div>
+          <Input
+            label="Password (leave blank to keep current)"
+            type="password"
+            placeholder="New password"
+            value={editPassword}
+            onChange={(e) => setEditPassword(e.target.value)}
+          />
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setEditTarget(null);
+                resetEditForm();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleEdit}
+              loading={editing}
+              disabled={!editEmail}
+            >
+              Save
             </Button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
+import { usePermissions } from "./hooks/usePermissions";
 import { AppProvider, useApp } from "./context/AppContext";
 import { LoginPage } from "./components/pages/LoginPage";
 import { Layout } from "./components/Layout";
@@ -17,6 +18,7 @@ import { Skeleton } from "./components/ui/Skeleton";
 function AppContent() {
   const auth = useAuth();
   const { authState, setAuthState, activeView } = useApp();
+  const { can } = usePermissions();
 
   useEffect(() => {
     if (!auth.isLoggedIn()) {
@@ -63,19 +65,17 @@ function AppContent() {
     return <LoginPage onLogin={handleLogin} />;
   }
 
-  const user = authState.status === "authenticated" ? authState.user : null;
-
   return (
     <Layout onLogout={handleLogout}>
       <div className="animate-fade-in-up" key={activeView}>
         {activeView === "overview" && <OverviewPage />}
         {activeView === "whatsapp" && <WhatsAppPage />}
-        {activeView === "knowledge-upload" && <KnowledgeUploadPage />}
-        {activeView === "knowledge-list" && <KnowledgeListPage />}
-        {activeView === "users" && (user?.role === "admin" || user?.role === "super_admin") && <UsersPage />}
-        {activeView === "organizations" && user?.role === "super_admin" && <OrganizationsPage />}
-        {activeView === "catalogs" && (user?.role === "admin" || user?.role === "super_admin") && <CatalogPage />}
-        {activeView === "whatsapp-connections" && (user?.role === "admin" || user?.role === "super_admin") && <WhatsAppConnectionsPage />}
+        {activeView === "knowledge-upload" && can("manage_knowledge") && <KnowledgeUploadPage />}
+        {activeView === "knowledge-list" && can("view_knowledge") && <KnowledgeListPage />}
+        {activeView === "users" && can("view_org_users") && <UsersPage />}
+        {activeView === "organizations" && can("view_all_orgs") && <OrganizationsPage />}
+        {activeView === "catalogs" && can("manage_catalogs") && <CatalogPage />}
+        {activeView === "whatsapp-connections" && can("view_whatsapp_mgmt") && <WhatsAppConnectionsPage />}
         {activeView === "settings" && <SettingsPage />}
       </div>
     </Layout>

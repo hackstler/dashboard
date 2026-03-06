@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { listUsers, createUser, deleteUser } from "../api/admin";
-import type { AdminUser, CreateUserData, InviteUserData } from "../types";
+import { listUsers, createUser, updateUser, deleteUser } from "../api/admin";
+import type { AdminUser, CreateUserData, InviteUserData, UpdateUserData } from "../types";
 
 interface UseUsersReturn {
   users: AdminUser[];
@@ -8,6 +8,7 @@ interface UseUsersReturn {
   error: string | null;
   refetch: () => void;
   createUser: (data: CreateUserData | InviteUserData) => Promise<AdminUser>;
+  editUser: (id: string, data: UpdateUserData) => Promise<AdminUser>;
   deleteUser: (id: string) => Promise<void>;
 }
 
@@ -49,6 +50,15 @@ export function useUsers(filters: {
     []
   );
 
+  const patchUser = useCallback(
+    async (id: string, data: UpdateUserData) => {
+      const updated = await updateUser(id, data);
+      setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
+      return updated;
+    },
+    []
+  );
+
   const removeUser = useCallback(async (id: string) => {
     await deleteUser(id);
     setUsers((prev) => prev.filter((u) => u.id !== id));
@@ -60,6 +70,7 @@ export function useUsers(filters: {
     error,
     refetch: fetchUsers,
     createUser: addUser,
+    editUser: patchUser,
     deleteUser: removeUser,
   };
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useApp } from "../../context/AppContext";
+import { usePermissions } from "../../hooks/usePermissions";
 import { useChannels } from "../../hooks/useChannels";
 import { useDocuments } from "../../hooks/useDocuments";
 import { apiRequest } from "../../api/http";
@@ -16,6 +17,7 @@ import {
 
 export function OverviewPage() {
   const { user, setActiveView } = useApp();
+  const { can } = usePermissions();
   const [orgName, setOrgName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -137,51 +139,53 @@ export function OverviewPage() {
         </div>
 
         {/* Knowledge Base */}
-        <div
-          className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-2"
-          style={
-            {
-              "--stat-accent": "#3b82f6",
-              "--stat-glow": "rgba(59,130,246,0.12)",
-            } as React.CSSProperties
-          }
-        >
-          <div className="flex items-center justify-between mb-5">
-            <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-accent-dim flex items-center justify-center">
-              <DatabaseIcon size={20} className="text-accent" />
-            </div>
-            {docsLoading && docs.length === 0 ? (
-              <Skeleton className="h-5 w-16" />
-            ) : (
-              <Badge variant="info">{animatedIndexed} indexed</Badge>
-            )}
-          </div>
-          <div className="mb-1">
-            {docsLoading && docs.length === 0 ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <p className="text-3xl sm:text-4xl font-bold text-text-bright tracking-tight tabular-nums">
-                {animatedTotal}
-              </p>
-            )}
-          </div>
-          <p className="text-xs text-text-muted mb-4">
-            Documents
-            {processingCount > 0 && (
-              <span className="text-yellow ml-1">
-                &middot; {processingCount} processing
-              </span>
-            )}
-          </p>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2.5"
-            onClick={() => setActiveView("knowledge-list")}
+        {can("view_knowledge") && (
+          <div
+            className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-2"
+            style={
+              {
+                "--stat-accent": "#3b82f6",
+                "--stat-glow": "rgba(59,130,246,0.12)",
+              } as React.CSSProperties
+            }
           >
-            View documents &rarr;
-          </Button>
-        </div>
+            <div className="flex items-center justify-between mb-5">
+              <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-accent-dim flex items-center justify-center">
+                <DatabaseIcon size={20} className="text-accent" />
+              </div>
+              {docsLoading && docs.length === 0 ? (
+                <Skeleton className="h-5 w-16" />
+              ) : (
+                <Badge variant="info">{animatedIndexed} indexed</Badge>
+              )}
+            </div>
+            <div className="mb-1">
+              {docsLoading && docs.length === 0 ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <p className="text-3xl sm:text-4xl font-bold text-text-bright tracking-tight tabular-nums">
+                  {animatedTotal}
+                </p>
+              )}
+            </div>
+            <p className="text-xs text-text-muted mb-4">
+              Documents
+              {processingCount > 0 && (
+                <span className="text-yellow ml-1">
+                  &middot; {processingCount} processing
+                </span>
+              )}
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="-ml-2.5"
+              onClick={() => setActiveView("knowledge-list")}
+            >
+              View documents &rarr;
+            </Button>
+          </div>
+        )}
 
         {/* Organization */}
         <div

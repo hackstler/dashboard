@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useApp } from "../../context/AppContext";
+import { usePermissions } from "../../hooks/usePermissions";
 import { useOrganizations } from "../../hooks/useOrganizations";
 import type { Organization } from "../../types";
 import { OrgEditPage } from "./OrgEditPage";
@@ -243,6 +244,7 @@ function OrgDeleteModal({
 
 export function OrganizationsPage() {
   const { user, addToast } = useApp();
+  const { can } = usePermissions();
   const {
     organizations: orgs,
     loading,
@@ -316,7 +318,7 @@ export function OrganizationsPage() {
     return (
       <OrgEditPage
         orgId={editingOrgId}
-        isOwnOrg={user?.role === "super_admin"}
+        isOwnOrg={can("edit_own_org")}
         onBack={() => setEditingOrgId(null)}
         getOrganization={getOrg}
         updateOrganization={updateOrg}
@@ -337,14 +339,16 @@ export function OrganizationsPage() {
             Manage tenant organizations.
           </p>
         </div>
-        <Button
-          variant="primary"
-          size="sm"
-          icon={<PlusIcon size={16} />}
-          onClick={() => setShowCreate(true)}
-        >
-          Create Organization
-        </Button>
+        {can("create_org") && (
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<PlusIcon size={16} />}
+            onClick={() => setShowCreate(true)}
+          >
+            Create Organization
+          </Button>
+        )}
       </div>
 
       {error && (
@@ -433,38 +437,42 @@ export function OrganizationsPage() {
                 </span>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <button
-                  onClick={() => setEditingOrgId(org.orgId)}
-                  className="btn-press transition-all cursor-pointer p-1.5 rounded-[var(--radius-sm)] text-text-dim hover:text-accent hover:bg-accent/10"
-                  title="Edit"
-                >
-                  <EditIcon size={16} />
-                </button>
-                <button
-                  onClick={() => {
-                    if (isOwnOrg(org)) {
-                      addToast(
-                        "Cannot delete your own organization",
-                        "error"
-                      );
-                      return;
+                {can("edit_own_org") && (
+                  <button
+                    onClick={() => setEditingOrgId(org.orgId)}
+                    className="btn-press transition-all cursor-pointer p-1.5 rounded-[var(--radius-sm)] text-text-dim hover:text-accent hover:bg-accent/10"
+                    title="Edit"
+                  >
+                    <EditIcon size={16} />
+                  </button>
+                )}
+                {can("delete_org") && (
+                  <button
+                    onClick={() => {
+                      if (isOwnOrg(org)) {
+                        addToast(
+                          "Cannot delete your own organization",
+                          "error"
+                        );
+                        return;
+                      }
+                      setDeleteTarget(org);
+                    }}
+                    className={`btn-press transition-all cursor-pointer p-1.5 rounded-[var(--radius-sm)] ${
+                      isOwnOrg(org)
+                        ? "text-text-dim/30 cursor-not-allowed"
+                        : "text-text-dim hover:text-red hover:bg-red-muted"
+                    }`}
+                    title={
+                      isOwnOrg(org)
+                        ? "Cannot delete your own organization"
+                        : "Delete"
                     }
-                    setDeleteTarget(org);
-                  }}
-                  className={`btn-press transition-all cursor-pointer p-1.5 rounded-[var(--radius-sm)] ${
-                    isOwnOrg(org)
-                      ? "text-text-dim/30 cursor-not-allowed"
-                      : "text-text-dim hover:text-red hover:bg-red-muted"
-                  }`}
-                  title={
-                    isOwnOrg(org)
-                      ? "Cannot delete your own organization"
-                      : "Delete"
-                  }
-                  disabled={isOwnOrg(org)}
-                >
-                  <TrashIcon size={16} />
-                </button>
+                    disabled={isOwnOrg(org)}
+                  >
+                    <TrashIcon size={16} />
+                  </button>
+                )}
               </div>
             </div>
           ))}

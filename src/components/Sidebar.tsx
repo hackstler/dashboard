@@ -1,5 +1,7 @@
 import { useApp } from "../context/AppContext";
+import { usePermissions } from "../hooks/usePermissions";
 import type { ActiveView } from "../types";
+import type { Permission } from "../permissions";
 import {
   HomeIcon,
   MessageCircleIcon,
@@ -17,40 +19,20 @@ interface NavItem {
   id: ActiveView;
   label: string;
   icon: ReactNode;
+  requiredPermission?: Permission;
+  section?: "main" | "admin" | "super";
 }
 
-const baseNavItems: NavItem[] = [
-  { id: "overview", label: "Overview", icon: <HomeIcon size={18} /> },
-  {
-    id: "whatsapp",
-    label: "Channels",
-    icon: <MessageCircleIcon size={18} />,
-  },
-  { id: "knowledge-upload", label: "Upload", icon: <UploadIcon size={18} /> },
-  {
-    id: "knowledge-list",
-    label: "Knowledge Base",
-    icon: <DatabaseIcon size={18} />,
-  },
-  { id: "settings", label: "Settings", icon: <SettingsIcon size={18} /> },
-];
-
-const adminNavItems: NavItem[] = [
-  { id: "users", label: "Users", icon: <UsersIcon size={18} /> },
-  {
-    id: "whatsapp-connections",
-    label: "WhatsApp Mgmt",
-    icon: <MessageCircleIcon size={18} />,
-  },
-  { id: "catalogs", label: "Catalog", icon: <TagIcon size={18} /> },
-];
-
-const superAdminNavItems: NavItem[] = [
-  {
-    id: "organizations",
-    label: "Organizations",
-    icon: <BuildingIcon size={18} />,
-  },
+const allNavItems: NavItem[] = [
+  { id: "overview", label: "Overview", icon: <HomeIcon size={18} />, section: "main" },
+  { id: "whatsapp", label: "Channels", icon: <MessageCircleIcon size={18} />, section: "main" },
+  { id: "knowledge-upload", label: "Upload", icon: <UploadIcon size={18} />, requiredPermission: "manage_knowledge", section: "main" },
+  { id: "knowledge-list", label: "Knowledge Base", icon: <DatabaseIcon size={18} />, requiredPermission: "view_knowledge", section: "main" },
+  { id: "settings", label: "Settings", icon: <SettingsIcon size={18} />, section: "main" },
+  { id: "users", label: "Users", icon: <UsersIcon size={18} />, requiredPermission: "view_org_users", section: "admin" },
+  { id: "whatsapp-connections", label: "WhatsApp Mgmt", icon: <MessageCircleIcon size={18} />, requiredPermission: "view_whatsapp_mgmt", section: "admin" },
+  { id: "catalogs", label: "Catalog", icon: <TagIcon size={18} />, requiredPermission: "manage_catalogs", section: "admin" },
+  { id: "organizations", label: "Organizations", icon: <BuildingIcon size={18} />, requiredPermission: "view_all_orgs", section: "super" },
 ];
 
 interface SidebarProps {
@@ -61,11 +43,42 @@ interface SidebarProps {
 
 export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
   const { user, activeView, setActiveView } = useApp();
+  const { can } = usePermissions();
+
+  const visibleItems = allNavItems.filter(
+    (item) => !item.requiredPermission || can(item.requiredPermission)
+  );
+
+  const mainItems = visibleItems.filter((item) => item.section === "main");
+  const adminItems = visibleItems.filter((item) => item.section === "admin");
+  const superItems = visibleItems.filter((item) => item.section === "super");
 
   const handleNav = (view: ActiveView) => {
     setActiveView(view);
     onMobileClose();
   };
+
+  const renderNavButton = (item: NavItem, staggerIndex: number) => {
+    const active = activeView === item.id;
+    return (
+      <button
+        key={item.id}
+        onClick={() => handleNav(item.id)}
+        className={`animate-slide-in-left stagger-${staggerIndex} w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-[var(--radius-md)] transition-all duration-200 cursor-pointer relative ${
+          active
+            ? "bg-accent-dim text-accent font-medium shadow-[var(--shadow-nav-active)] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-accent before:rounded-full before:shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+            : "text-text-muted hover:bg-surface-hover hover:text-text hover:translate-x-0.5"
+        }`}
+      >
+        <span className={`shrink-0 transition-transform duration-200 ${active ? "scale-110" : ""}`}>
+          {item.icon}
+        </span>
+        {item.label}
+      </button>
+    );
+  };
+
+  let stagger = 0;
 
   return (
     <>
@@ -95,71 +108,17 @@ export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
         </div>
 
         <nav className="flex-1 py-3 px-3 space-y-0.5">
-          {baseNavItems.map((item, i) => {
-            const active = activeView === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNav(item.id)}
-                className={`animate-slide-in-left stagger-${i + 1} w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-[var(--radius-md)] transition-all duration-200 cursor-pointer relative ${
-                  active
-                    ? "bg-accent-dim text-accent font-medium shadow-[var(--shadow-nav-active)] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-accent before:rounded-full before:shadow-[0_0_8px_rgba(59,130,246,0.5)]"
-                    : "text-text-muted hover:bg-surface-hover hover:text-text hover:translate-x-0.5"
-                }`}
-              >
-                <span className={`shrink-0 transition-transform duration-200 ${active ? "scale-110" : ""}`}>
-                  {item.icon}
-                </span>
-                {item.label}
-              </button>
-            );
-          })}
-          {(user?.role === "admin" || user?.role === "super_admin") && (
+          {mainItems.map((item) => renderNavButton(item, ++stagger))}
+          {adminItems.length > 0 && (
             <>
               <div className="border-t border-border my-2" />
-              {adminNavItems.map((item, i) => {
-                const active = activeView === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNav(item.id)}
-                    className={`animate-slide-in-left stagger-${baseNavItems.length + i + 1} w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-[var(--radius-md)] transition-all duration-200 cursor-pointer relative ${
-                      active
-                        ? "bg-accent-dim text-accent font-medium shadow-[var(--shadow-nav-active)] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-accent before:rounded-full before:shadow-[0_0_8px_rgba(59,130,246,0.5)]"
-                        : "text-text-muted hover:bg-surface-hover hover:text-text hover:translate-x-0.5"
-                    }`}
-                  >
-                    <span className={`shrink-0 transition-transform duration-200 ${active ? "scale-110" : ""}`}>
-                      {item.icon}
-                    </span>
-                    {item.label}
-                  </button>
-                );
-              })}
+              {adminItems.map((item) => renderNavButton(item, ++stagger))}
             </>
           )}
-          {user?.role === "super_admin" && (
+          {superItems.length > 0 && (
             <>
               <div className="border-t border-border my-2" />
-              {superAdminNavItems.map((item, i) => {
-                const active = activeView === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNav(item.id)}
-                    className={`animate-slide-in-left stagger-${baseNavItems.length + adminNavItems.length + i + 1} w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-[var(--radius-md)] transition-all duration-200 cursor-pointer relative ${
-                      active
-                        ? "bg-accent-dim text-accent font-medium shadow-[var(--shadow-nav-active)] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-accent before:rounded-full before:shadow-[0_0_8px_rgba(59,130,246,0.5)]"
-                        : "text-text-muted hover:bg-surface-hover hover:text-text hover:translate-x-0.5"
-                    }`}
-                  >
-                    <span className={`shrink-0 transition-transform duration-200 ${active ? "scale-110" : ""}`}>
-                      {item.icon}
-                    </span>
-                    {item.label}
-                  </button>
-                );
-              })}
+              {superItems.map((item) => renderNavButton(item, ++stagger))}
             </>
           )}
         </nav>

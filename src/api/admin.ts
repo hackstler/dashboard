@@ -7,12 +7,14 @@ import type {
   UpdateOrganizationData,
   CreateUserData,
   InviteUserData,
+  UpdateUserData,
   WhatsAppConnection,
 } from "../types";
 
 export type {
   CreateUserData,
   InviteUserData,
+  UpdateUserData,
   CreateOrganizationData,
   UpdateOrganizationData,
 } from "../types";
@@ -32,6 +34,16 @@ export async function createUser(
   data: CreateUserData | InviteUserData
 ): Promise<AdminUser> {
   return apiRequest("/admin/users", { method: "POST", body: data });
+}
+
+export async function updateUser(
+  id: string,
+  data: UpdateUserData
+): Promise<AdminUser> {
+  return apiRequest(`/admin/users/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: data,
+  });
 }
 
 export async function deleteUser(id: string): Promise<void> {
