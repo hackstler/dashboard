@@ -115,11 +115,11 @@ export function WhatsAppConnectionsPage() {
               style={{ animationDelay: `${Math.min(i * 0.04, 0.4)}s` }}
             >
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/40 to-brand/30 border border-accent/25 flex items-center justify-center text-xs font-semibold text-accent select-none shrink-0">
-                {(conn.username ?? conn.userId).charAt(0).toUpperCase()}
+                {(conn.userEmail ?? conn.userId).charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-text-bright font-medium truncate">
-                  {conn.username ?? conn.userId}
+                  {conn.userEmail ?? conn.userId}
                 </p>
                 <div className="flex flex-wrap items-center gap-2 mt-0.5">
                   {isSuperAdmin && (
@@ -162,7 +162,7 @@ export function WhatsAppConnectionsPage() {
           <p className="text-sm text-text-muted">
             Are you sure you want to disconnect WhatsApp for{" "}
             <span className="text-text-bright font-medium">
-              {revokeTarget?.username ?? revokeTarget?.userId}
+              {revokeTarget?.userEmail ?? revokeTarget?.userId}
             </span>
             ? The session will be terminated within ~3 minutes.
           </p>

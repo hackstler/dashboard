@@ -241,9 +241,9 @@ export interface Toast {
 export interface WhatsAppConnection {
   id: string;
   userId: string;
-  username: string | null;
+  userEmail: string | null;
   orgId: string;
-  status: "connected" | "pending" | "qr" | "disconnected";
+  status: string;
   phone: string | null;
   updatedAt: string;
 }

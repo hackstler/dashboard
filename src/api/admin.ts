@@ -78,8 +78,8 @@ export async function deleteOrganization(orgId: string): Promise<void> {
 }
 
 export async function getWhatsappConnections(): Promise<WhatsAppConnection[]> {
-  const json = await apiRequest<{ data: WhatsAppConnection[] }>("/admin/whatsapp/sessions");
-  return json.data;
+  const json = await apiRequest<{ items: WhatsAppConnection[] }>("/admin/whatsapp/sessions");
+  return json.items;
 }
 
 export async function revokeWhatsappConnection(userId: string): Promise<void> {
