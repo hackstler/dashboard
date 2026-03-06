@@ -620,72 +620,67 @@ export function OrganizationsPage() {
             onChange={(e) => setNewAdminPassword(e.target.value)}
           />
 
-          {/* Company details section */}
-          <div className="border-t border-border pt-4 mt-1">
-            <p className="text-xs font-medium text-text-muted mb-3">
-              Company details
-              <span className="text-text-dim ml-1 font-normal">— optional</span>
-            </p>
-            <div className="space-y-3">
+          {/* Company details — glass sub-surface */}
+          <div className="bg-surface-hi/60 backdrop-blur-sm border border-border rounded-[var(--radius-lg)] p-4 space-y-3">
+            <p className="text-xs font-medium text-text-dim tracking-wide uppercase">Company details</p>
+            <Input
+              label="Company Name"
+              placeholder="Acme Corp"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+            <Input
+              label="Slug"
+              placeholder="acme-corp"
+              value={newSlug}
+              onChange={(e) =>
+                setNewSlug(
+                  e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")
+                )
+              }
+            />
+            <div className="grid grid-cols-2 gap-3">
               <Input
-                label="Company Name"
-                placeholder="Acme Corp"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
+                label="NIF / Tax ID"
+                placeholder="B12345678"
+                value={newNif}
+                onChange={(e) => setNewNif(e.target.value)}
               />
               <Input
-                label="Slug"
-                placeholder="acme-corp"
-                value={newSlug}
-                onChange={(e) =>
-                  setNewSlug(
-                    e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")
-                  )
-                }
+                label="Email"
+                type="email"
+                placeholder="info@acme.com"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
               />
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="NIF / Tax ID"
-                  placeholder="B12345678"
-                  value={newNif}
-                  onChange={(e) => setNewNif(e.target.value)}
-                />
-                <Input
-                  label="Email"
-                  type="email"
-                  placeholder="info@acme.com"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                />
-              </div>
+            </div>
+            <Input
+              label="Phone"
+              type="tel"
+              placeholder="+34 600 000 000"
+              value={newPhone}
+              onChange={(e) => setNewPhone(e.target.value)}
+            />
+            <Input
+              label="Address"
+              placeholder="123 Main St, City"
+              value={newAddress}
+              onChange={(e) => setNewAddress(e.target.value)}
+            />
+            <div className="grid grid-cols-2 gap-3">
               <Input
-                label="Phone"
-                type="tel"
-                placeholder="+34 600 000 000"
-                value={newPhone}
-                onChange={(e) => setNewPhone(e.target.value)}
+                label="VAT Rate (%)"
+                type="number"
+                placeholder="21"
+                value={newVatRate}
+                onChange={(e) => setNewVatRate(e.target.value)}
               />
               <Input
-                label="Address"
-                placeholder="123 Main St, City"
-                value={newAddress}
-                onChange={(e) => setNewAddress(e.target.value)}
+                label="Currency"
+                placeholder="€"
+                value={newCurrency}
+                onChange={(e) => setNewCurrency(e.target.value)}
               />
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="VAT Rate (%)"
-                  type="number"
-                  placeholder="21"
-                  value={newVatRate}
-                  onChange={(e) => setNewVatRate(e.target.value)}
-                />
-                <Input
-                  label="Currency"
-                  placeholder="€"
-                  value={newCurrency}
-                  onChange={(e) => setNewCurrency(e.target.value)}
-                />
-              </div>
             </div>
           </div>
 
