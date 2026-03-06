@@ -24,6 +24,7 @@ export interface AdminUser {
 
 export interface Organization {
   orgId: string;
+  name: string | null;
   userCount: number;
   docCount: number;
   createdAt: string | null;

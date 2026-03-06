@@ -520,20 +520,26 @@ export function OrganizationsPage() {
               <div className="flex-1 min-w-0">
                 <button
                   onClick={() => setEditingOrgId(org.orgId)}
-                  className="text-sm text-text-bright font-medium font-mono truncate hover:text-accent transition-colors cursor-pointer text-left"
+                  className="text-sm text-text-bright font-medium truncate hover:text-accent transition-colors cursor-pointer text-left"
                 >
-                  {org.orgId}
+                  {org.name || org.orgId}
                   {isOwnOrg(org) && (
-                    <span className="text-xs text-text-dim ml-2 font-sans">
+                    <span className="text-xs text-text-dim ml-2">
                       (yours)
                     </span>
                   )}
                 </button>
                 <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                  <span className="text-xs text-text-dim font-mono">
+                    {org.orgId}
+                  </span>
                   {org.createdAt && (
-                    <span className="text-xs text-text-dim">
-                      {formatDate(org.createdAt)}
-                    </span>
+                    <>
+                      <span className="text-text-dim">·</span>
+                      <span className="text-xs text-text-dim">
+                        {formatDate(org.createdAt)}
+                      </span>
+                    </>
                   )}
                 </div>
               </div>

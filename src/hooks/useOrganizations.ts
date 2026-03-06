@@ -54,6 +54,7 @@ export function useOrganizations(): UseOrganizationsReturn {
         ...prev,
         {
           orgId: result.orgId,
+          name: data.name ?? null,
           userCount: 1,
           docCount: 0,
           createdAt: result.admin.createdAt,
