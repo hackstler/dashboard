@@ -30,7 +30,9 @@ export type ActiveView =
   | "organizations"
   | "catalogs"
   | "whatsapp-connections"
-  | "settings";
+  | "settings"
+  | "my-organization"
+  | "profile";
 
 // ── Admin ───────────────────────────────────────────────────────────────────
 

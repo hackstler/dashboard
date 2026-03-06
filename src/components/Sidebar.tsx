@@ -29,10 +29,11 @@ const allNavItems: NavItem[] = [
   { id: "knowledge-upload", label: "Upload", icon: <UploadIcon size={18} />, requiredPermission: "manage_knowledge", section: "main" },
   { id: "knowledge-list", label: "Knowledge Base", icon: <DatabaseIcon size={18} />, requiredPermission: "view_knowledge", section: "main" },
   { id: "settings", label: "Settings", icon: <SettingsIcon size={18} />, section: "main" },
+  { id: "my-organization", label: "My Organization", icon: <BuildingIcon size={18} />, requiredPermission: "view_own_org", section: "main" },
   { id: "users", label: "Users", icon: <UsersIcon size={18} />, requiredPermission: "view_org_users", section: "admin" },
-  { id: "whatsapp-connections", label: "WhatsApp Mgmt", icon: <MessageCircleIcon size={18} />, requiredPermission: "view_whatsapp_mgmt", section: "admin" },
   { id: "catalogs", label: "Catalog", icon: <TagIcon size={18} />, requiredPermission: "manage_catalogs", section: "admin" },
   { id: "organizations", label: "Organizations", icon: <BuildingIcon size={18} />, requiredPermission: "view_all_orgs", section: "super" },
+  { id: "whatsapp-connections", label: "WhatsApp Mgmt", icon: <MessageCircleIcon size={18} />, requiredPermission: "view_whatsapp_mgmt", section: "super" },
 ];
 
 interface SidebarProps {
@@ -124,17 +125,22 @@ export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
         </nav>
 
         <div className="border-t border-border px-4 py-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/40 to-brand/30 border border-accent/25 flex items-center justify-center text-xs font-semibold text-accent select-none shadow-[0_0_12px_rgba(59,130,246,0.15)]">
-            {user?.username?.charAt(0).toUpperCase() ?? "?"}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm text-text-bright font-medium truncate">
-              {user?.username}
-            </p>
-            <p className="text-xs text-text-dim truncate font-mono">
-              {user?.orgId}
-            </p>
-          </div>
+          <button
+            onClick={() => handleNav("profile")}
+            className="flex items-center gap-3 flex-1 min-w-0 rounded-[var(--radius-md)] p-1 -m-1 hover:bg-surface-hover transition-colors cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/40 to-brand/30 border border-accent/25 flex items-center justify-center text-xs font-semibold text-accent select-none shadow-[0_0_12px_rgba(59,130,246,0.15)]">
+              {user?.username?.charAt(0).toUpperCase() ?? "?"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-text-bright font-medium truncate text-left">
+                {user?.username}
+              </p>
+              <p className="text-xs text-text-dim truncate font-mono text-left">
+                {user?.orgId}
+              </p>
+            </div>
+          </button>
           <button
             onClick={onLogout}
             className="btn-press text-text-dim hover:text-red transition-colors cursor-pointer p-1.5 rounded-[var(--radius-sm)] hover:bg-red-muted"

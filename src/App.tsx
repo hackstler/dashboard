@@ -11,6 +11,8 @@ import { KnowledgeListPage } from "./components/pages/KnowledgeListPage";
 import { UsersPage } from "./components/pages/UsersPage";
 import { OrganizationsPage } from "./components/pages/OrganizationsPage";
 import { SettingsPage } from "./components/pages/SettingsPage";
+import { ProfilePage } from "./components/pages/ProfilePage";
+import { MyOrganizationPage } from "./components/pages/MyOrganizationPage";
 import { CatalogPage } from "./components/pages/CatalogPage";
 import { WhatsAppConnectionsPage } from "./components/pages/WhatsAppConnectionsPage";
 import { Skeleton } from "./components/ui/Skeleton";
@@ -76,6 +78,8 @@ function AppContent() {
         {activeView === "organizations" && can("view_all_orgs") && <OrganizationsPage />}
         {activeView === "catalogs" && can("manage_catalogs") && <CatalogPage />}
         {activeView === "whatsapp-connections" && can("view_whatsapp_mgmt") && <WhatsAppConnectionsPage />}
+        {activeView === "profile" && <ProfilePage />}
+        {activeView === "my-organization" && <MyOrganizationPage />}
         {activeView === "settings" && <SettingsPage />}
       </div>
     </Layout>

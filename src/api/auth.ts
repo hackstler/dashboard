@@ -61,3 +61,10 @@ export function logout(): void {
 export function isLoggedIn(): boolean {
   return localStorage.getItem("auth_token") !== null;
 }
+
+export async function updateProfile(data: { email?: string; password?: string }): Promise<void> {
+  await apiRequest("/auth/profile", {
+    method: "PATCH",
+    body: data,
+  });
+}

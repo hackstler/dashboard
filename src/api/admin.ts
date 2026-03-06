@@ -1,4 +1,4 @@
-import { apiRequest } from "./http";
+import { apiRequest, apiRequestNullable } from "./http";
 import type {
   AdminUser,
   Organization,
@@ -87,6 +87,11 @@ export async function deleteOrganization(orgId: string): Promise<void> {
     `/admin/organizations/${encodeURIComponent(orgId)}`,
     { method: "DELETE" }
   );
+}
+
+export async function getMyOrganization(): Promise<OrganizationDetail | null> {
+  const data = await apiRequestNullable<{ data: OrganizationDetail }>("/org/me");
+  return data?.data ?? null;
 }
 
 export async function getWhatsappConnections(): Promise<WhatsAppConnection[]> {
