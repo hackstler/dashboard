@@ -7,7 +7,7 @@ import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "../ui/EmptyState";
-import { PlusIcon, TrashIcon, EditIcon } from "../ui/Icons";
+import { PlusIcon, TrashIcon, EditIcon, TagIcon } from "../ui/Icons";
 
 export function CatalogPage() {
   const {
@@ -69,6 +69,7 @@ export function CatalogPage() {
           </div>
         ) : catalogs.length === 0 ? (
           <EmptyState
+            icon={<TagIcon size={40} />}
             title="No catalogs"
             description="Create your first catalog to start managing products."
           />
@@ -154,6 +155,7 @@ export function CatalogPage() {
             <Skeleton className="h-32" />
           ) : items.length === 0 ? (
             <EmptyState
+              icon={<TagIcon size={40} />}
               title="No items"
               description="Add items to this catalog."
             />
