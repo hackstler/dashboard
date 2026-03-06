@@ -29,6 +29,23 @@ export interface Organization {
   createdAt: string | null;
 }
 
+export interface OrganizationDetail {
+  id: string;
+  orgId: string;
+  slug: string | null;
+  name: string | null;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  nif: string | null;
+  logo: string | null;
+  vatRate: string | null;
+  currency: string;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type DocumentContentType =
   | "pdf"
   | "markdown"

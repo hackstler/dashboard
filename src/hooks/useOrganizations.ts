@@ -3,20 +3,22 @@ import {
   listOrganizations,
   createOrganization,
   deleteOrganization,
+  getOrganization,
+  updateOrganization,
+  type CreateOrganizationData,
+  type UpdateOrganizationData,
 } from "../api/admin";
-import type { AdminUser, Organization } from "../types";
+import type { AdminUser, Organization, OrganizationDetail } from "../types";
 
 interface UseOrganizationsReturn {
   organizations: Organization[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
-  createOrganization: (data: {
-    orgId: string;
-    adminUsername: string;
-    adminPassword: string;
-  }) => Promise<{ orgId: string; admin: AdminUser }>;
+  createOrganization: (data: CreateOrganizationData) => Promise<{ orgId: string; admin: AdminUser }>;
   deleteOrganization: (orgId: string) => Promise<void>;
+  getOrganization: (orgId: string) => Promise<OrganizationDetail>;
+  updateOrganization: (orgId: string, data: UpdateOrganizationData) => Promise<OrganizationDetail>;
 }
 
 export function useOrganizations(): UseOrganizationsReturn {
@@ -46,11 +48,7 @@ export function useOrganizations(): UseOrganizationsReturn {
   }, [fetchOrganizations]);
 
   const addOrganization = useCallback(
-    async (data: {
-      orgId: string;
-      adminUsername: string;
-      adminPassword: string;
-    }) => {
+    async (data: CreateOrganizationData) => {
       const result = await createOrganization(data);
       setOrganizations((prev) => [
         ...prev,
@@ -71,6 +69,17 @@ export function useOrganizations(): UseOrganizationsReturn {
     setOrganizations((prev) => prev.filter((o) => o.orgId !== orgId));
   }, []);
 
+  const fetchOrganization = useCallback(async (orgId: string) => {
+    return getOrganization(orgId);
+  }, []);
+
+  const editOrganization = useCallback(
+    async (orgId: string, data: UpdateOrganizationData) => {
+      return updateOrganization(orgId, data);
+    },
+    []
+  );
+
   return {
     organizations,
     loading,
@@ -78,5 +87,7 @@ export function useOrganizations(): UseOrganizationsReturn {
     refetch: fetchOrganizations,
     createOrganization: addOrganization,
     deleteOrganization: removeOrganization,
+    getOrganization: fetchOrganization,
+    updateOrganization: editOrganization,
   };
 }

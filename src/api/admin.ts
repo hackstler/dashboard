@@ -1,4 +1,4 @@
-import type { AdminUser, Organization } from "../types";
+import type { AdminUser, Organization, OrganizationDetail } from "../types";
 
 const BASE_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3000";
 
@@ -83,13 +83,42 @@ export async function listOrganizations(): Promise<{ items: Organization[] }> {
 }
 
 /**
- * POST /admin/organizations
+ * GET /admin/organizations/:orgId
  */
-export async function createOrganization(data: {
+export async function getOrganization(orgId: string): Promise<OrganizationDetail> {
+  const res = await fetch(
+    `${BASE_URL}/admin/organizations/${encodeURIComponent(orgId)}`,
+    { headers: authHeaders() }
+  );
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({ message: "Failed to get organization" }))) as { message: string };
+    throw new Error(err.message);
+  }
+  const body = (await res.json()) as { data: OrganizationDetail };
+  return body.data;
+}
+
+export interface CreateOrganizationData {
   orgId: string;
   adminUsername: string;
   adminPassword: string;
-}): Promise<{ orgId: string; admin: AdminUser }> {
+  slug?: string;
+  name?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  nif?: string;
+  logo?: string;
+  vatRate?: number;
+  currency?: string;
+}
+
+/**
+ * POST /admin/organizations
+ */
+export async function createOrganization(
+  data: CreateOrganizationData
+): Promise<{ orgId: string; admin: AdminUser }> {
   const res = await fetch(`${BASE_URL}/admin/organizations`, {
     method: "POST",
     headers: { ...authHeaders(), "Content-Type": "application/json" },
@@ -100,6 +129,41 @@ export async function createOrganization(data: {
     throw new Error(err.message);
   }
   return (await res.json()) as { orgId: string; admin: AdminUser };
+}
+
+export interface UpdateOrganizationData {
+  slug?: string | null;
+  name?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  nif?: string | null;
+  logo?: string | null;
+  vatRate?: number | null;
+  currency?: string;
+}
+
+/**
+ * PUT /admin/organizations/:orgId
+ */
+export async function updateOrganization(
+  orgId: string,
+  data: UpdateOrganizationData
+): Promise<OrganizationDetail> {
+  const res = await fetch(
+    `${BASE_URL}/admin/organizations/${encodeURIComponent(orgId)}`,
+    {
+      method: "PUT",
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }
+  );
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({ message: "Failed to update organization" }))) as { message: string };
+    throw new Error(err.message);
+  }
+  const body = (await res.json()) as { data: OrganizationDetail };
+  return body.data;
 }
 
 /**
