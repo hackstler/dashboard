@@ -94,8 +94,7 @@ export async function getOrganization(orgId: string): Promise<OrganizationDetail
     const err = (await res.json().catch(() => ({ message: "Failed to get organization" }))) as { message: string };
     throw new Error(err.message);
   }
-  const body = (await res.json()) as { data: OrganizationDetail };
-  return body.data;
+  return (await res.json()) as OrganizationDetail;
 }
 
 export interface CreateOrganizationData {
@@ -162,8 +161,7 @@ export async function updateOrganization(
     const err = (await res.json().catch(() => ({ message: "Failed to update organization" }))) as { message: string };
     throw new Error(err.message);
   }
-  const body = (await res.json()) as { data: OrganizationDetail };
-  return body.data;
+  return (await res.json()) as OrganizationDetail;
 }
 
 /**
