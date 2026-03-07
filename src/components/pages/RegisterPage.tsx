@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearch, useLocation } from "wouter";
-import { useFirebaseAuth } from "../../hooks/useFirebaseAuth";
-import {
-  getAuthStrategy,
-  validateInviteToken,
-  registerWithInvite,
-} from "../../api/auth";
+import { useAuthAdapter } from "../../hooks/useAuthAdapter";
+import { validateInviteToken } from "../../api/auth";
 import { Card, CardContent } from "../ui/Card";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
@@ -17,6 +13,8 @@ export function RegisterPage() {
   const [, navigate] = useLocation();
   const params = new URLSearchParams(search);
   const token = params.get("token");
+
+  const adapter = useAuthAdapter();
 
   const [state, setState] = useState<"loading" | "invalid" | "form">("loading");
   const [validation, setValidation] = useState<InviteValidation | null>(null);
@@ -31,12 +29,9 @@ export function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const strategy = getAuthStrategy();
-  const firebase = useFirebaseAuth();
-
   useEffect(() => {
     if (!token) {
-      setErrorMessage("Link inválido. No se encontró token de invitación.");
+      setErrorMessage("Link invalido. No se encontro token de invitacion.");
       setState("invalid");
       return;
     }
@@ -49,42 +44,54 @@ export function RegisterPage() {
           setState("form");
         } else {
           if (result.reason === "expired") {
-            setErrorMessage("Esta invitación ha expirado. Contacta a tu administrador.");
+            setErrorMessage("Esta invitacion ha expirado. Contacta a tu administrador.");
           } else if (result.reason === "used") {
-            setErrorMessage("Esta invitación ya fue utilizada.");
+            setErrorMessage("Esta invitacion ya fue utilizada.");
           } else {
-            setErrorMessage("Invitación inválida.");
+            setErrorMessage("Invitacion invalida.");
           }
           setState("invalid");
         }
       })
       .catch(() => {
-        setErrorMessage("Invitación inválida o expirada.");
+        setErrorMessage("Invitacion invalida o expirada.");
         setState("invalid");
       });
   }, [token]);
 
-  const handlePasswordRegister = async (e: React.FormEvent) => {
+  // Handle redirect result on mount (mobile comes back here after Google redirect)
+  useEffect(() => {
+    if (state !== "form" || !token) return;
+    let cancelled = false;
+    adapter.handleRedirectResult().then((completed) => {
+      if (completed && !cancelled) navigate("/", { replace: true });
+    }).catch((err) => {
+      if (!cancelled) setFormError(err instanceof Error ? err.message : "Error al registrar");
+    });
+    return () => { cancelled = true; };
+  }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleCredentialRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setFormError("Las contraseñas no coinciden");
+      setFormError("Las contrasenas no coinciden");
       return;
     }
     if (password.length < 8) {
-      setFormError("La contraseña debe tener al menos 8 caracteres");
+      setFormError("La contrasena debe tener al menos 8 caracteres");
       return;
     }
 
     setFormError(null);
     setSubmitting(true);
     try {
-      await registerWithInvite({
-        inviteToken: token!,
+      await adapter.registerWithCredentials(
+        token!,
         email,
         password,
-        firstName: firstName || undefined,
-        lastName: lastName || undefined,
-      });
+        firstName || undefined,
+        lastName || undefined,
+      );
       navigate("/", { replace: true });
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Error al registrar");
@@ -97,13 +104,11 @@ export function RegisterPage() {
     setFormError(null);
     setSubmitting(true);
     try {
-      const idToken = await firebase.signInWithGoogle();
-      await registerWithInvite({
-        inviteToken: token!,
-        idToken,
-        firstName: firstName || undefined,
-        lastName: lastName || undefined,
-      });
+      await adapter.registerWithGoogle(
+        token!,
+        firstName || undefined,
+        lastName || undefined,
+      );
       navigate("/", { replace: true });
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Error al registrar con Google");
@@ -135,7 +140,7 @@ export function RegisterPage() {
           {state === "invalid" && (
             <>
               <h1 className="text-2xl font-bold gradient-text">
-                Invitación no válida
+                Invitacion no valida
               </h1>
               <p className="text-xs text-text-muted mt-2 text-center">
                 {errorMessage}
@@ -149,7 +154,7 @@ export function RegisterPage() {
                 Crear tu cuenta
               </h1>
               <p className="text-xs text-text-muted mt-2 text-center">
-                Estás invitado a unirte{validation?.orgName ? ` a ${validation.orgName}` : ""}
+                Estas invitado a unirte{validation?.orgName ? ` a ${validation.orgName}` : ""}
               </p>
             </>
           )}
@@ -173,7 +178,7 @@ export function RegisterPage() {
               <div className="text-center">
                 <p className="text-sm text-text-muted mb-4">{errorMessage}</p>
                 <Button variant="primary" onClick={() => navigate("/", { replace: true })}>
-                  Ir a iniciar sesión
+                  Ir a iniciar sesion
                 </Button>
               </div>
             </CardContent>
@@ -192,7 +197,7 @@ export function RegisterPage() {
 
                 {validation?.orgName && (
                   <Input
-                    label="Organización"
+                    label="Organizacion"
                     value={validation.orgName}
                     disabled
                   />
@@ -215,7 +220,7 @@ export function RegisterPage() {
                   />
                 </div>
 
-                {strategy === "firebase" ? (
+                {adapter.strategyName === "firebase" && (
                   <>
                     <Button
                       variant="primary"
@@ -232,84 +237,46 @@ export function RegisterPage() {
                       <span className="text-xs text-text-dim">o</span>
                       <div className="flex-1 h-px bg-border" />
                     </div>
-
-                    <form onSubmit={handlePasswordRegister} className="flex flex-col gap-3">
-                      <Input
-                        label="Email"
-                        type="email"
-                        placeholder="tu@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        autoComplete="email"
-                        disabled={!!validation?.email}
-                      />
-                      <Input
-                        label="Contraseña"
-                        type="password"
-                        placeholder="Mínimo 8 caracteres"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        autoComplete="new-password"
-                      />
-                      <Input
-                        label="Confirmar contraseña"
-                        type="password"
-                        placeholder="Repite la contraseña"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        autoComplete="new-password"
-                      />
-                      <Button
-                        type="submit"
-                        variant="secondary"
-                        size="lg"
-                        loading={submitting}
-                        disabled={!email || !password || !confirmPassword}
-                        className="w-full"
-                      >
-                        Crear cuenta con email
-                      </Button>
-                    </form>
                   </>
-                ) : (
-                  <form onSubmit={handlePasswordRegister} className="flex flex-col gap-3">
-                    <Input
-                      label="Email"
-                      type="email"
-                      placeholder="tu@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      autoComplete="email"
-                      disabled={!!validation?.email}
-                    />
-                    <Input
-                      label="Contraseña"
-                      type="password"
-                      placeholder="Mínimo 8 caracteres"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      autoComplete="new-password"
-                    />
-                    <Input
-                      label="Confirmar contraseña"
-                      type="password"
-                      placeholder="Repite la contraseña"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      autoComplete="new-password"
-                    />
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="lg"
-                      loading={submitting}
-                      disabled={!email || !password || !confirmPassword}
-                      className="w-full mt-2"
-                    >
-                      Crear cuenta
-                    </Button>
-                  </form>
                 )}
+
+                <form onSubmit={handleCredentialRegister} className="flex flex-col gap-3">
+                  <Input
+                    label="Email"
+                    type="email"
+                    placeholder="tu@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    disabled={!!validation?.email}
+                  />
+                  <Input
+                    label="Contrasena"
+                    type="password"
+                    placeholder="Minimo 8 caracteres"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                  <Input
+                    label="Confirmar contrasena"
+                    type="password"
+                    placeholder="Repite la contrasena"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                  <Button
+                    type="submit"
+                    variant={adapter.strategyName === "firebase" ? "secondary" : "primary"}
+                    size="lg"
+                    loading={submitting}
+                    disabled={!email || !password || !confirmPassword}
+                    className="w-full"
+                  >
+                    {adapter.strategyName === "firebase" ? "Crear cuenta con email" : "Crear cuenta"}
+                  </Button>
+                </form>
               </div>
             </CardContent>
           </Card>

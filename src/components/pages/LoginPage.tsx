@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../../hooks/useAuth";
-import { useFirebaseAuth } from "../../hooks/useFirebaseAuth";
-import { getAuthStrategy, loginWithFirebaseToken } from "../../api/auth";
+import { useAuthAdapter } from "../../hooks/useAuthAdapter";
 import { Card, CardContent } from "../ui/Card";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
@@ -10,168 +8,51 @@ interface LoginPageProps {
   onLogin: () => void;
 }
 
-function PasswordLoginPanel({ onLogin }: LoginPageProps) {
-  const auth = useAuth();
+export function LoginPage({ onLogin }: LoginPageProps) {
+  const adapter = useAuthAdapter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await auth.login(email, password);
-      onLogin();
-    } catch {
-      // error is set by the hook
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {auth.error && (
-        <div className="px-3 py-2 bg-red-muted border border-red/20 rounded-[var(--radius-md)] animate-fade-in">
-          <p className="text-xs text-red">{auth.error}</p>
-        </div>
-      )}
-      <Input
-        label="Email"
-        type="email"
-        placeholder="Enter your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        autoComplete="email"
-      />
-      <Input
-        label="Password"
-        type="password"
-        placeholder="Enter your password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        autoComplete="current-password"
-      />
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        loading={auth.loading}
-        disabled={!email || !password}
-        className="w-full mt-2"
-      >
-        Sign in
-      </Button>
-    </form>
-  );
-}
-
-function FirebaseLoginPanel({ onLogin }: LoginPageProps) {
-  const firebase = useFirebaseAuth();
-  const [email, setEmail] = useState("");
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
-  // Check for magic link completion on mount
+  // Handle redirect result on mount (mobile comes back here after Google redirect)
   useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const idToken = await firebase.completeMagicLink();
-        if (idToken && !controller.signal.aborted) {
-          await loginWithFirebaseToken(idToken);
-          onLogin();
-        }
-      } catch {
-        // not a magic link URL or failed — ignore
-      }
-    })();
-    return () => controller.abort();
+    let cancelled = false;
+    adapter.handleRedirectResult().then((completed) => {
+      if (completed && !cancelled) onLogin();
+    }).catch((err) => {
+      if (!cancelled) setError(err instanceof Error ? err.message : "Sign-in failed");
+    });
+    return () => { cancelled = true; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleGoogleSignIn = async () => {
+  const handleCredentialLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      const idToken = await firebase.signInWithGoogle();
-      await loginWithFirebaseToken(idToken);
+      await adapter.loginWithCredentials(email, password);
+      onLogin();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid credentials");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      await adapter.loginWithGoogle();
       onLogin();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed");
     } finally {
-      setLoading(false);
+      setGoogleLoading(false);
     }
   };
-
-  const handleSendMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      await firebase.sendMagicLink(email);
-      setMagicLinkSent(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send link");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="flex flex-col gap-4">
-      {(error ?? firebase.error) && (
-        <div className="px-3 py-2 bg-red-muted border border-red/20 rounded-[var(--radius-md)] animate-fade-in">
-          <p className="text-xs text-red">{error ?? firebase.error}</p>
-        </div>
-      )}
-
-      <Button
-        variant="primary"
-        size="lg"
-        onClick={handleGoogleSignIn}
-        loading={loading && !magicLinkSent}
-        className="w-full"
-      >
-        Sign in with Google
-      </Button>
-
-      <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-border" />
-        <span className="text-xs text-text-dim">or</span>
-        <div className="flex-1 h-px bg-border" />
-      </div>
-
-      {magicLinkSent ? (
-        <div className="px-3 py-3 bg-accent/10 border border-accent/20 rounded-[var(--radius-md)] animate-fade-in">
-          <p className="text-sm text-text-bright text-center">
-            Check your email for the sign-in link.
-          </p>
-        </div>
-      ) : (
-        <form onSubmit={handleSendMagicLink} className="flex flex-col gap-3">
-          <Input
-            label="Email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-          />
-          <Button
-            type="submit"
-            variant="secondary"
-            size="lg"
-            loading={loading && !magicLinkSent}
-            disabled={!email}
-            className="w-full"
-          >
-            Send magic link
-          </Button>
-        </form>
-      )}
-    </div>
-  );
-}
-
-export function LoginPage({ onLogin }: LoginPageProps) {
-  const strategy = getAuthStrategy();
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-bg px-4 noise-bg relative overflow-hidden">
@@ -189,19 +70,70 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             Sign in to your account
           </h1>
           <p className="text-xs text-text-muted mt-2">
-            {strategy === "firebase"
-              ? "Sign in with your Google account or email"
+            {adapter.strategyName === "firebase"
+              ? "Sign in with Google or your email"
               : "Enter your credentials to continue"}
           </p>
         </div>
 
         <Card className="gradient-border">
           <CardContent>
-            {strategy === "firebase" ? (
-              <FirebaseLoginPanel onLogin={onLogin} />
-            ) : (
-              <PasswordLoginPanel onLogin={onLogin} />
-            )}
+            <div className="flex flex-col gap-4">
+              {error && (
+                <div className="px-3 py-2 bg-red-muted border border-red/20 rounded-[var(--radius-md)] animate-fade-in">
+                  <p className="text-xs text-red">{error}</p>
+                </div>
+              )}
+
+              {adapter.strategyName === "firebase" && (
+                <>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={handleGoogleLogin}
+                    loading={googleLoading}
+                    className="w-full"
+                  >
+                    Sign in with Google
+                  </Button>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-xs text-text-dim">or</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                </>
+              )}
+
+              <form onSubmit={handleCredentialLogin} className="flex flex-col gap-3">
+                <Input
+                  label="Email"
+                  type="email"
+                  placeholder={adapter.strategyName === "firebase" ? "you@example.com" : "Enter your email"}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                />
+                <Input
+                  label="Password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                />
+                <Button
+                  type="submit"
+                  variant={adapter.strategyName === "firebase" ? "secondary" : "primary"}
+                  size="lg"
+                  loading={loading}
+                  disabled={!email || !password}
+                  className="w-full mt-2"
+                >
+                  {adapter.strategyName === "firebase" ? "Sign in with email" : "Sign in"}
+                </Button>
+              </form>
+            </div>
           </CardContent>
         </Card>
       </div>

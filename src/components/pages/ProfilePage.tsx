@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useApp } from "../../context/AppContext";
-import { updateProfile, getAuthStrategy } from "../../api/auth";
+import { useAuthAdapter } from "../../hooks/useAuthAdapter";
+import { updateProfile } from "../../api/auth";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Badge } from "../ui/Badge";
@@ -8,7 +9,7 @@ import { SaveIcon } from "../ui/Icons";
 
 export function ProfilePage() {
   const { user, addToast, refreshUser } = useApp();
-  const strategy = getAuthStrategy();
+  const adapter = useAuthAdapter();
   const [name, setName] = useState(user?.name ?? "");
   const [surname, setSurname] = useState(user?.surname ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -118,7 +119,7 @@ export function ProfilePage() {
         </div>
 
         {/* Personal Information */}
-        {strategy === "password" && (
+        {adapter.supportsPasswordManagement && (
           <div className="bg-surface border border-border rounded-[var(--radius-lg)] p-6 animate-fade-in-up stagger-1">
             <h2 className="text-sm font-semibold text-text-bright mb-4">
               Personal Information
@@ -143,7 +144,7 @@ export function ProfilePage() {
         )}
 
         {/* Edit Email */}
-        {strategy === "password" && (
+        {adapter.supportsPasswordManagement && (
           <div className="bg-surface border border-border rounded-[var(--radius-lg)] p-6 animate-fade-in-up stagger-2">
             <h2 className="text-sm font-semibold text-text-bright mb-4">
               Email
@@ -161,7 +162,7 @@ export function ProfilePage() {
         )}
 
         {/* Change Password */}
-        {strategy === "password" && (
+        {adapter.supportsPasswordManagement && (
           <div className="bg-surface border border-border rounded-[var(--radius-lg)] p-6 animate-fade-in-up stagger-3">
             <h2 className="text-sm font-semibold text-text-bright mb-4">
               Change Password
@@ -186,7 +187,7 @@ export function ProfilePage() {
         )}
 
         {/* Save */}
-        {strategy === "password" && (
+        {adapter.supportsPasswordManagement && (
           <div className="flex justify-end pt-2 pb-4">
             <Button
               variant="primary"
@@ -200,7 +201,7 @@ export function ProfilePage() {
           </div>
         )}
 
-        {strategy === "firebase" && (
+        {!adapter.supportsPasswordManagement && (
           <div className="bg-surface border border-border rounded-[var(--radius-lg)] p-6 animate-fade-in-up stagger-1">
             <p className="text-sm text-text-muted">
               Your account is managed through Firebase. Use your Google account

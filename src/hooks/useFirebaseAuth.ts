@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
@@ -13,8 +15,15 @@ const MAGIC_LINK_STORAGE_KEY = "firebase_magic_link_email";
 
 const googleProvider = new GoogleAuthProvider();
 
+function isMobileDevice(): boolean {
+  return /Android|iPhone|iPad|iPod|webOS|BlackBerry|Opera Mini|IEMobile/i.test(
+    navigator.userAgent,
+  );
+}
+
 interface UseFirebaseAuthReturn {
   signInWithGoogle: () => Promise<string>;
+  handleRedirectResult: () => Promise<string | null>;
   sendMagicLink: (email: string) => Promise<void>;
   completeMagicLink: () => Promise<string | null>;
   signOutFirebase: () => Promise<void>;
@@ -32,15 +41,38 @@ export function useFirebaseAuth(): UseFirebaseAuthReturn {
     setError(null);
     try {
       const auth = getFirebaseAuth();
+
+      // Mobile: use redirect to avoid popup blocking
+      if (isMobileDevice()) {
+        await signInWithRedirect(auth, googleProvider);
+        // Page redirects away — result handled by handleRedirectResult on return
+        return "";
+      }
+
+      // Desktop: use popup
       const result = await signInWithPopup(auth, googleProvider);
-      const idToken = await result.user.getIdToken();
-      return idToken;
+      return await result.user.getIdToken();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Google sign-in failed";
       setError(message);
       throw err;
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  const handleRedirectResultFn = useCallback(async (): Promise<string | null> => {
+    try {
+      const auth = getFirebaseAuth();
+      const result = await getRedirectResult(auth);
+      if (result) {
+        return await result.user.getIdToken();
+      }
+      return null;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Redirect sign-in failed";
+      setError(message);
+      return null;
     }
   }, []);
 
@@ -108,6 +140,7 @@ export function useFirebaseAuth(): UseFirebaseAuthReturn {
 
   return {
     signInWithGoogle: signInWithGoogleFn,
+    handleRedirectResult: handleRedirectResultFn,
     sendMagicLink: sendMagicLinkFn,
     completeMagicLink: completeMagicLinkFn,
     signOutFirebase: signOutFirebaseFn,

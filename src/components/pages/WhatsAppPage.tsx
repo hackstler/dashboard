@@ -15,11 +15,18 @@ import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "../ui/EmptyState";
 import { MessageCircleIcon } from "../ui/Icons";
 
+function isMobile(): boolean {
+  return /Android|iPhone|iPad|iPod|webOS|BlackBerry|Opera Mini|IEMobile/i.test(
+    navigator.userAgent,
+  );
+}
+
 export function WhatsAppPage() {
   const { addToast } = useApp();
   const { status, qrData, loading, enable, disconnect } = useChannels();
   const [disconnecting, setDisconnecting] = useState(false);
   const [enabling, setEnabling] = useState(false);
+  const mobile = isMobile();
 
   const handleEnable = async () => {
     setEnabling(true);
@@ -99,7 +106,16 @@ export function WhatsAppPage() {
         </CardHeader>
 
         <CardContent>
-          {loading && !status ? (
+          {mobile && status?.status !== "connected" ? (
+            <div className="text-center py-6 animate-fade-in">
+              <p className="text-sm text-text-muted mb-2">
+                Para escanear el código QR, abre esta página desde un ordenador.
+              </p>
+              <p className="text-xs text-text-dim">
+                El código QR no se puede escanear desde el mismo teléfono.
+              </p>
+            </div>
+          ) : loading && !status ? (
             <div className="space-y-3">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-2/3" />

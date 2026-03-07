@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useApp } from "../../context/AppContext";
 import { usePermissions } from "../../hooks/usePermissions";
 import { useUsers } from "../../hooks/useUsers";
-import { getAuthStrategy } from "../../api/auth";
+import { useAuthAdapter } from "../../hooks/useAuthAdapter";
 import { createInvitation, listInvitations, revokeInvitation } from "../../api/admin";
 import type { AdminUser, Invitation } from "../../types";
 import { Card } from "../ui/Card";
@@ -18,7 +18,7 @@ import { formatDate } from "../../utils/format";
 export function UsersPage() {
   const { user, addToast } = useApp();
   const { can } = usePermissions();
-  const strategy = getAuthStrategy();
+  const { strategyName: strategy } = useAuthAdapter();
   const [search, setSearch] = useState("");
   const [orgFilter, setOrgFilter] = useState("");
 
