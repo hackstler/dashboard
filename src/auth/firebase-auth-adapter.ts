@@ -2,8 +2,6 @@ import {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signOut,
 } from "firebase/auth";
@@ -65,11 +63,8 @@ export class FirebaseAuthAdapter implements AuthAdapter {
     await loginWithFirebaseToken(idToken);
   }
 
-  async loginWithCredentials(email: string, password: string): Promise<void> {
-    const auth = getFirebaseAuth();
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    const idToken = await result.user.getIdToken();
-    await loginWithFirebaseToken(idToken);
+  async loginWithCredentials(): Promise<void> {
+    throw new Error("Password login is not available with Firebase authentication");
   }
 
   async registerWithGoogle(
@@ -95,22 +90,8 @@ export class FirebaseAuthAdapter implements AuthAdapter {
     });
   }
 
-  async registerWithCredentials(
-    inviteToken: string,
-    email: string,
-    password: string,
-    firstName?: string,
-    lastName?: string,
-  ): Promise<void> {
-    const auth = getFirebaseAuth();
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    const idToken = await result.user.getIdToken();
-    await registerWithInvite({
-      inviteToken,
-      idToken,
-      firstName,
-      lastName,
-    });
+  async registerWithCredentials(): Promise<void> {
+    throw new Error("Password registration is not available with Firebase authentication");
   }
 
   async handleRedirectResult(): Promise<boolean> {

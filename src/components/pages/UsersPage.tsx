@@ -530,13 +530,15 @@ export function UsersPage() {
               <option value="super_admin">Super Admin</option>
             </select>
           </div>
-          <Input
-            label="Password (leave blank to keep current)"
-            type="password"
-            placeholder="New password"
-            value={editPassword}
-            onChange={(e) => setEditPassword(e.target.value)}
-          />
+          {strategy !== "firebase" && (
+            <Input
+              label="Password (leave blank to keep current)"
+              type="password"
+              placeholder="New password"
+              value={editPassword}
+              onChange={(e) => setEditPassword(e.target.value)}
+            />
+          )}
           <div className="flex justify-end gap-3 pt-2">
             <Button
               variant="secondary"

@@ -15,6 +15,7 @@ export function RegisterPage() {
   const token = params.get("token");
 
   const adapter = useAuthAdapter();
+  const isFirebase = adapter.strategyName === "firebase";
 
   const [state, setState] = useState<"loading" | "invalid" | "form">("loading");
   const [validation, setValidation] = useState<InviteValidation | null>(null);
@@ -61,7 +62,7 @@ export function RegisterPage() {
 
   // Handle redirect result on mount (mobile comes back here after Google redirect)
   useEffect(() => {
-    if (state !== "form" || !token) return;
+    if (!isFirebase) return;
     let cancelled = false;
     adapter.handleRedirectResult().then((completed) => {
       if (completed && !cancelled) navigate("/", { replace: true });
@@ -69,7 +70,7 @@ export function RegisterPage() {
       if (!cancelled) setFormError(err instanceof Error ? err.message : "Error al registrar");
     });
     return () => { cancelled = true; };
-  }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCredentialRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,63 +221,55 @@ export function RegisterPage() {
                   />
                 </div>
 
-                {adapter.strategyName === "firebase" && (
-                  <>
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      onClick={handleGoogleRegister}
-                      loading={submitting}
-                      className="w-full"
-                    >
-                      Registrarse con Google
-                    </Button>
-
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-px bg-border" />
-                      <span className="text-xs text-text-dim">o</span>
-                      <div className="flex-1 h-px bg-border" />
-                    </div>
-                  </>
-                )}
-
-                <form onSubmit={handleCredentialRegister} className="flex flex-col gap-3">
-                  <Input
-                    label="Email"
-                    type="email"
-                    placeholder="tu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="email"
-                    disabled={!!validation?.email}
-                  />
-                  <Input
-                    label="Contrasena"
-                    type="password"
-                    placeholder="Minimo 8 caracteres"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="new-password"
-                  />
-                  <Input
-                    label="Confirmar contrasena"
-                    type="password"
-                    placeholder="Repite la contrasena"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    autoComplete="new-password"
-                  />
+                {isFirebase ? (
                   <Button
-                    type="submit"
-                    variant={adapter.strategyName === "firebase" ? "secondary" : "primary"}
+                    variant="primary"
                     size="lg"
+                    onClick={handleGoogleRegister}
                     loading={submitting}
-                    disabled={!email || !password || !confirmPassword}
                     className="w-full"
                   >
-                    {adapter.strategyName === "firebase" ? "Crear cuenta con email" : "Crear cuenta"}
+                    Registrarse con Google
                   </Button>
-                </form>
+                ) : (
+                  <form onSubmit={handleCredentialRegister} className="flex flex-col gap-3">
+                    <Input
+                      label="Email"
+                      type="email"
+                      placeholder="tu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="email"
+                      disabled={!!validation?.email}
+                    />
+                    <Input
+                      label="Contrasena"
+                      type="password"
+                      placeholder="Minimo 8 caracteres"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="new-password"
+                    />
+                    <Input
+                      label="Confirmar contrasena"
+                      type="password"
+                      placeholder="Repite la contrasena"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      autoComplete="new-password"
+                    />
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      loading={submitting}
+                      disabled={!email || !password || !confirmPassword}
+                      className="w-full mt-2"
+                    >
+                      Crear cuenta
+                    </Button>
+                  </form>
+                )}
               </div>
             </CardContent>
           </Card>

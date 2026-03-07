@@ -14,7 +14,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   // Handle redirect result on mount (mobile comes back here after Google redirect)
   useEffect(() => {
@@ -43,16 +42,18 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
   const handleGoogleLogin = async () => {
     setError(null);
-    setGoogleLoading(true);
+    setLoading(true);
     try {
       await adapter.loginWithGoogle();
       onLogin();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed");
     } finally {
-      setGoogleLoading(false);
+      setLoading(false);
     }
   };
+
+  const isFirebase = adapter.strategyName === "firebase";
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-bg px-4 noise-bg relative overflow-hidden">
@@ -70,8 +71,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             Sign in to your account
           </h1>
           <p className="text-xs text-text-muted mt-2">
-            {adapter.strategyName === "firebase"
-              ? "Sign in with Google or your email"
+            {isFirebase
+              ? "Sign in with your Google account"
               : "Enter your credentials to continue"}
           </p>
         </div>
@@ -85,54 +86,46 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 </div>
               )}
 
-              {adapter.strategyName === "firebase" && (
-                <>
+              {isFirebase ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={handleGoogleLogin}
+                  loading={loading}
+                  className="w-full"
+                >
+                  Sign in with Google
+                </Button>
+              ) : (
+                <form onSubmit={handleCredentialLogin} className="flex flex-col gap-3">
+                  <Input
+                    label="Email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                  />
+                  <Input
+                    label="Password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                  />
                   <Button
+                    type="submit"
                     variant="primary"
                     size="lg"
-                    onClick={handleGoogleLogin}
-                    loading={googleLoading}
-                    className="w-full"
+                    loading={loading}
+                    disabled={!email || !password}
+                    className="w-full mt-2"
                   >
-                    Sign in with Google
+                    Sign in
                   </Button>
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-border" />
-                    <span className="text-xs text-text-dim">or</span>
-                    <div className="flex-1 h-px bg-border" />
-                  </div>
-                </>
+                </form>
               )}
-
-              <form onSubmit={handleCredentialLogin} className="flex flex-col gap-3">
-                <Input
-                  label="Email"
-                  type="email"
-                  placeholder={adapter.strategyName === "firebase" ? "you@example.com" : "Enter your email"}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                />
-                <Input
-                  label="Password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                />
-                <Button
-                  type="submit"
-                  variant={adapter.strategyName === "firebase" ? "secondary" : "primary"}
-                  size="lg"
-                  loading={loading}
-                  disabled={!email || !password}
-                  className="w-full mt-2"
-                >
-                  {adapter.strategyName === "firebase" ? "Sign in with email" : "Sign in"}
-                </Button>
-              </form>
             </div>
           </CardContent>
         </Card>
