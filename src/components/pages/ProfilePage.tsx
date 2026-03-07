@@ -7,17 +7,25 @@ import { Badge } from "../ui/Badge";
 import { SaveIcon } from "../ui/Icons";
 
 export function ProfilePage() {
-  const { user, addToast } = useApp();
+  const { user, addToast, refreshUser } = useApp();
   const strategy = getAuthStrategy();
-  const [email, setEmail] = useState(user?.username ?? "");
+  const [name, setName] = useState(user?.name ?? "");
+  const [surname, setSurname] = useState(user?.surname ?? "");
+  const [email, setEmail] = useState(user?.email ?? "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
-    const data: { email?: string; password?: string } = {};
+    const data: { email?: string; name?: string; surname?: string; password?: string } = {};
 
-    if (email !== user?.username) {
+    if (name !== (user?.name ?? "")) {
+      data.name = name;
+    }
+    if (surname !== (user?.surname ?? "")) {
+      data.surname = surname;
+    }
+    if (email !== user?.email) {
       data.email = email;
     }
     if (password) {
@@ -32,7 +40,7 @@ export function ProfilePage() {
       data.password = password;
     }
 
-    if (!data.email && !data.password) {
+    if (Object.keys(data).length === 0) {
       addToast("No changes to save", "info");
       return;
     }
@@ -40,6 +48,7 @@ export function ProfilePage() {
     setSaving(true);
     try {
       await updateProfile(data);
+      await refreshUser();
       addToast("Profile updated", "success");
       setPassword("");
       setConfirmPassword("");
@@ -52,6 +61,12 @@ export function ProfilePage() {
       setSaving(false);
     }
   };
+
+  const displayName = user?.name && user?.surname
+    ? `${user.name} ${user.surname}`
+    : user?.name ?? user?.email;
+
+  const avatarInitial = (user?.name ?? user?.email ?? "?").charAt(0).toUpperCase();
 
   return (
     <div className="animate-fade-in-up">
@@ -74,13 +89,17 @@ export function ProfilePage() {
           </h2>
           <div className="flex flex-wrap items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent/40 to-brand/30 border border-accent/25 flex items-center justify-center text-base font-semibold text-accent select-none shadow-[0_0_12px_rgba(59,130,246,0.15)]">
-              {user?.username?.charAt(0).toUpperCase() ?? "?"}
+              {avatarInitial}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-text-bright font-medium truncate">
-                {user?.username}
+                {displayName}
               </p>
               <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs text-text-dim">
+                  {user?.email}
+                </span>
+                <span className="text-text-dim">&middot;</span>
                 <span className="text-xs text-text-dim font-mono">
                   {user?.orgId}
                 </span>
@@ -98,9 +117,34 @@ export function ProfilePage() {
           </div>
         </div>
 
-        {/* Edit Email */}
+        {/* Personal Information */}
         {strategy === "password" && (
           <div className="bg-surface border border-border rounded-[var(--radius-lg)] p-6 animate-fade-in-up stagger-1">
+            <h2 className="text-sm font-semibold text-text-bright mb-4">
+              Personal Information
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
+              <Input
+                label="Name"
+                type="text"
+                placeholder="First name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <Input
+                label="Surname"
+                type="text"
+                placeholder="Last name"
+                value={surname}
+                onChange={(e) => setSurname(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Edit Email */}
+        {strategy === "password" && (
+          <div className="bg-surface border border-border rounded-[var(--radius-lg)] p-6 animate-fade-in-up stagger-2">
             <h2 className="text-sm font-semibold text-text-bright mb-4">
               Email
             </h2>
@@ -118,7 +162,7 @@ export function ProfilePage() {
 
         {/* Change Password */}
         {strategy === "password" && (
-          <div className="bg-surface border border-border rounded-[var(--radius-lg)] p-6 animate-fade-in-up stagger-2">
+          <div className="bg-surface border border-border rounded-[var(--radius-lg)] p-6 animate-fade-in-up stagger-3">
             <h2 className="text-sm font-semibold text-text-bright mb-4">
               Change Password
             </h2>

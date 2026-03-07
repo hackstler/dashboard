@@ -12,13 +12,13 @@ interface LoginPageProps {
 
 function PasswordLoginPanel({ onLogin }: LoginPageProps) {
   const auth = useAuth();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await auth.login(username, password);
+      await auth.login(email, password);
       onLogin();
     } catch {
       // error is set by the hook
@@ -33,12 +33,12 @@ function PasswordLoginPanel({ onLogin }: LoginPageProps) {
         </div>
       )}
       <Input
-        label="Username"
-        type="text"
-        placeholder="Enter your username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        autoComplete="username"
+        label="Email"
+        type="email"
+        placeholder="Enter your email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        autoComplete="email"
       />
       <Input
         label="Password"
@@ -53,7 +53,7 @@ function PasswordLoginPanel({ onLogin }: LoginPageProps) {
         variant="primary"
         size="lg"
         loading={auth.loading}
-        disabled={!username || !password}
+        disabled={!email || !password}
         className="w-full mt-2"
       >
         Sign in

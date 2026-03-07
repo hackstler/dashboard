@@ -2,7 +2,9 @@
 
 export interface User {
   id: string;
-  username: string;
+  email: string;
+  name: string | null;
+  surname: string | null;
   orgId: string;
   role: "admin" | "user" | "super_admin";
 }
@@ -39,14 +41,18 @@ export type ActiveView =
 export interface AdminUser {
   id: string;
   email: string;
+  name: string | null;
+  surname: string | null;
   orgId: string;
   role: string;
   createdAt: string;
 }
 
 export interface CreateUserData {
-  username: string;
+  email: string;
   password: string;
+  name?: string;
+  surname?: string;
   orgId: string;
   role: "admin" | "user" | "super_admin";
 }
@@ -59,6 +65,8 @@ export interface InviteUserData {
 
 export interface UpdateUserData {
   email?: string;
+  name?: string;
+  surname?: string;
   role?: string;
   password?: string;
 }

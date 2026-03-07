@@ -3,7 +3,7 @@ import { login, logout, getMe, isLoggedIn } from "../api/auth";
 import type { User, LoginResponse } from "../types";
 
 interface UseAuthReturn {
-  login: (username: string, password: string) => Promise<LoginResponse>;
+  login: (email: string, password: string) => Promise<LoginResponse>;
   logout: () => void;
   getMe: () => Promise<User | null>;
   isLoggedIn: () => boolean;
@@ -16,11 +16,11 @@ export function useAuth(): UseAuthReturn {
   const [error, setError] = useState<string | null>(null);
 
   const performLogin = useCallback(
-    async (username: string, password: string) => {
+    async (email: string, password: string) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await login(username, password);
+        const result = await login(email, password);
         return result;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Login failed";

@@ -33,15 +33,18 @@ export function UsersPage() {
   // Create modal
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [newUsername, setNewUsername] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newSurname, setNewSurname] = useState("");
   const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [newOrgId, setNewOrgId] = useState("");
   const [newRole, setNewRole] = useState<"admin" | "user" | "super_admin">("user");
 
   // Edit modal
   const [editTarget, setEditTarget] = useState<AdminUser | null>(null);
   const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editSurname, setEditSurname] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editRole, setEditRole] = useState<"admin" | "user" | "super_admin">("user");
   const [editPassword, setEditPassword] = useState("");
@@ -54,11 +57,17 @@ export function UsersPage() {
     setCreating(true);
     try {
       if (strategy === "firebase") {
-        await createUser({ email: newEmail, orgId: newOrgId, role: newRole });
+        await createUser({
+          email: newEmail,
+          orgId: newOrgId,
+          role: newRole,
+        });
       } else {
         await createUser({
-          username: newUsername,
+          email: newEmail,
           password: newPassword,
+          name: newName || undefined,
+          surname: newSurname || undefined,
           orgId: newOrgId,
           role: newRole,
         });
@@ -97,7 +106,9 @@ export function UsersPage() {
     if (!editTarget) return;
     setEditing(true);
     try {
-      const data: { email?: string; role?: string; password?: string } = {};
+      const data: { email?: string; name?: string; surname?: string; role?: string; password?: string } = {};
+      if (editName !== (editTarget.name ?? "")) data.name = editName;
+      if (editSurname !== (editTarget.surname ?? "")) data.surname = editSurname;
       if (editEmail !== editTarget.email) data.email = editEmail;
       if (editRole !== editTarget.role) data.role = editRole;
       if (editPassword) data.password = editPassword;
@@ -117,21 +128,26 @@ export function UsersPage() {
 
   const openEditModal = (u: AdminUser) => {
     setEditTarget(u);
+    setEditName(u.name ?? "");
+    setEditSurname(u.surname ?? "");
     setEditEmail(u.email);
     setEditRole(u.role as "admin" | "user" | "super_admin");
     setEditPassword("");
   };
 
   const resetEditForm = () => {
+    setEditName("");
+    setEditSurname("");
     setEditEmail("");
     setEditRole("user");
     setEditPassword("");
   };
 
   const resetCreateForm = () => {
-    setNewUsername("");
-    setNewPassword("");
+    setNewName("");
+    setNewSurname("");
     setNewEmail("");
+    setNewPassword("");
     setNewOrgId("");
     setNewRole("user");
   };
@@ -139,9 +155,15 @@ export function UsersPage() {
   const isCreateDisabled =
     strategy === "firebase"
       ? !newEmail || !newOrgId
-      : !newUsername || !newPassword || !newOrgId;
+      : !newEmail || !newPassword || !newOrgId;
 
   const isSelf = (u: AdminUser) => u.id === user?.id;
+
+  const displayName = (u: AdminUser) =>
+    u.name && u.surname ? `${u.name} ${u.surname}` : u.name ?? u.email;
+
+  const avatarInitial = (u: AdminUser) =>
+    (u.name ?? u.email ?? "?").charAt(0).toUpperCase();
 
   return (
     <div>
@@ -168,7 +190,7 @@ export function UsersPage() {
 
       <div className="flex flex-wrap items-center gap-3 mb-6 animate-fade-in-up stagger-1">
         <Input
-          placeholder="Search by email..."
+          placeholder="Search by name or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           icon={<SearchIcon size={16} />}
@@ -239,16 +261,20 @@ export function UsersPage() {
               style={{ animationDelay: `${Math.min(i * 0.04, 0.4)}s` }}
             >
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/40 to-brand/30 border border-accent/25 flex items-center justify-center text-xs font-semibold text-accent select-none shrink-0">
-                {u.email?.charAt(0).toUpperCase() ?? "?"}
+                {avatarInitial(u)}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-text-bright font-medium truncate">
-                  {u.email}
+                  {displayName(u)}
                   {isSelf(u) && (
                     <span className="text-xs text-text-dim ml-2">(you)</span>
                   )}
                 </p>
                 <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                  <span className="text-xs text-text-dim">
+                    {u.email}
+                  </span>
+                  <span className="text-text-dim">&middot;</span>
                   <span className="text-xs text-text-dim font-mono">
                     {u.orgId}
                   </span>
@@ -305,30 +331,35 @@ export function UsersPage() {
         title={strategy === "firebase" ? "Invite User" : "Create User"}
       >
         <div className="space-y-4">
-          {strategy === "firebase" ? (
+          <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Email"
-              type="email"
-              placeholder="user@example.com"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
+              label="Name"
+              placeholder="First name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
             />
-          ) : (
-            <>
-              <Input
-                label="Username"
-                placeholder="john@example.com"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-              />
-              <Input
-                label="Password"
-                type="password"
-                placeholder="Min 8 characters"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-            </>
+            <Input
+              label="Surname"
+              placeholder="Last name"
+              value={newSurname}
+              onChange={(e) => setNewSurname(e.target.value)}
+            />
+          </div>
+          <Input
+            label="Email"
+            type="email"
+            placeholder="user@example.com"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+          />
+          {strategy !== "firebase" && (
+            <Input
+              label="Password"
+              type="password"
+              placeholder="Min 8 characters"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
           )}
           <Input
             label="Organization ID"
@@ -384,6 +415,20 @@ export function UsersPage() {
         title="Edit User"
       >
         <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Name"
+              placeholder="First name"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+            />
+            <Input
+              label="Surname"
+              placeholder="Last name"
+              value={editSurname}
+              onChange={(e) => setEditSurname(e.target.value)}
+            />
+          </div>
           <Input
             label="Email"
             type="email"
@@ -446,7 +491,7 @@ export function UsersPage() {
           <p className="text-sm text-text-muted">
             Are you sure you want to delete{" "}
             <span className="text-text-bright font-medium">
-              {deleteTarget?.email}
+              {deleteTarget ? displayName(deleteTarget) : ""}
             </span>
             ? This will also delete all their conversations and messages.
           </p>

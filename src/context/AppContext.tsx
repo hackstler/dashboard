@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
 import type { User, ActiveView, Toast, ToastType, AuthState } from "../types";
+import { getMe } from "../api/auth";
 
 interface AppContextValue {
   authState: AuthState;
@@ -11,6 +12,7 @@ interface AppContextValue {
   toasts: Toast[];
   addToast: (message: string, type?: ToastType) => void;
   removeToast: (id: string) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -34,6 +36,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const me = await getMe();
+    if (me) {
+      setAuthState({ status: "authenticated", user: me });
+    }
+  }, []);
+
   const user = authState.status === "authenticated" ? authState.user : null;
 
   return (
@@ -47,6 +56,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         toasts,
         addToast,
         removeToast,
+        refreshUser,
       }}
     >
       {children}
