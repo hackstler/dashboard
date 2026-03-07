@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useApp } from "../../context/AppContext";
 import { usePermissions } from "../../hooks/usePermissions";
 import { useUsers } from "../../hooks/useUsers";
 import { getAuthStrategy } from "../../api/auth";
-import type { AdminUser } from "../../types";
+import { createInvitation, listInvitations, revokeInvitation } from "../../api/admin";
+import type { AdminUser, Invitation } from "../../types";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
@@ -52,6 +53,29 @@ export function UsersPage() {
   // Delete modal
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Invitation state
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviting, setInviting] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"admin" | "user">("user");
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [copied, setCopied] = useState(false);
+
+  const fetchInvitations = useCallback(async () => {
+    if (!can("view_org_users")) return;
+    try {
+      const data = await listInvitations();
+      setInvitations(data.items.filter((i) => !i.usedAt));
+    } catch {
+      // silently fail
+    }
+  }, [can]);
+
+  useEffect(() => {
+    fetchInvitations();
+  }, [fetchInvitations]);
 
   const handleCreate = async () => {
     setCreating(true);
@@ -143,6 +167,46 @@ export function UsersPage() {
     setEditPassword("");
   };
 
+  const handleInvite = async () => {
+    setInviting(true);
+    try {
+      const result = await createInvitation({
+        email: inviteEmail || undefined,
+        role: inviteRole,
+      });
+      setInviteUrl(result.inviteUrl);
+      addToast("Invitación creada", "success");
+      fetchInvitations();
+    } catch (err) {
+      addToast(
+        err instanceof Error ? err.message : "Error al crear invitación",
+        "error",
+      );
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const handleRevokeInvitation = async (id: string) => {
+    try {
+      await revokeInvitation(id);
+      setInvitations((prev) => prev.filter((i) => i.id !== id));
+      addToast("Invitación revocada", "success");
+    } catch (err) {
+      addToast(
+        err instanceof Error ? err.message : "Error al revocar invitación",
+        "error",
+      );
+    }
+  };
+
+  const handleCopyInviteUrl = () => {
+    if (!inviteUrl) return;
+    navigator.clipboard.writeText(inviteUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const resetCreateForm = () => {
     setNewName("");
     setNewSurname("");
@@ -177,14 +241,30 @@ export function UsersPage() {
           </p>
         </div>
         {can("create_org_users") && (
-          <Button
-            variant="primary"
-            size="sm"
-            icon={<PlusIcon size={16} />}
-            onClick={() => setShowCreate(true)}
-          >
-            {strategy === "firebase" ? "Invite User" : "Create User"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<PlusIcon size={16} />}
+              onClick={() => {
+                setShowInvite(true);
+                setInviteUrl(null);
+                setInviteEmail("");
+                setInviteRole("user");
+                setCopied(false);
+              }}
+            >
+              Invite via Link
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<PlusIcon size={16} />}
+              onClick={() => setShowCreate(true)}
+            >
+              {strategy === "firebase" ? "Invite User" : "Create User"}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -481,6 +561,42 @@ export function UsersPage() {
         </div>
       </Modal>
 
+      {/* Pending Invitations */}
+      {invitations.length > 0 && (
+        <div className="mt-8 animate-fade-in-up">
+          <h2 className="text-lg font-semibold text-text-bright mb-4">
+            Invitaciones pendientes
+          </h2>
+          <div className="space-y-2">
+            {invitations.map((inv) => (
+              <div
+                key={inv.id}
+                className="flex flex-wrap sm:flex-nowrap items-center gap-4 px-4 py-3 bg-surface border border-border rounded-[var(--radius-lg)]"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-text-bright font-medium truncate">
+                    {inv.email ?? "Sin email"}
+                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-text-dim">
+                      Expira: {formatDate(inv.expiresAt)}
+                    </span>
+                  </div>
+                </div>
+                <Badge variant="default">{inv.role}</Badge>
+                <button
+                  onClick={() => handleRevokeInvitation(inv.id)}
+                  className="btn-press transition-all cursor-pointer p-1.5 rounded-[var(--radius-sm)] text-text-dim hover:text-red hover:bg-red-muted"
+                  title="Revocar"
+                >
+                  <TrashIcon size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Delete User Modal */}
       <Modal
         open={deleteTarget !== null}
@@ -512,6 +628,90 @@ export function UsersPage() {
               Delete
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Invite via Link Modal */}
+      <Modal
+        open={showInvite}
+        onClose={() => {
+          setShowInvite(false);
+          setInviteUrl(null);
+        }}
+        title="Invitar usuario via link"
+      >
+        <div className="space-y-4">
+          {inviteUrl ? (
+            <>
+              <p className="text-sm text-text-muted">
+                Comparte este enlace con el usuario:
+              </p>
+              <div className="flex items-center gap-2">
+                <input
+                  readOnly
+                  value={inviteUrl}
+                  className="flex-1 bg-surface border border-border text-text text-xs px-3 py-2 rounded-[var(--radius-md)] font-mono truncate"
+                />
+                <Button
+                  variant={copied ? "primary" : "secondary"}
+                  size="sm"
+                  onClick={handleCopyInviteUrl}
+                >
+                  {copied ? "Copiado!" : "Copiar"}
+                </Button>
+              </div>
+              <div className="flex justify-end pt-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setShowInvite(false);
+                    setInviteUrl(null);
+                  }}
+                >
+                  Cerrar
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <Input
+                label="Email (opcional)"
+                type="email"
+                placeholder="usuario@email.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+              />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-text-muted">Rol</label>
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as "admin" | "user")}
+                  className="w-full bg-surface border border-border text-text text-sm px-3 py-2 rounded-[var(--radius-md)] outline-none focus:border-accent/50 cursor-pointer"
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowInvite(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleInvite}
+                  loading={inviting}
+                >
+                  Crear invitación
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </Modal>
     </div>

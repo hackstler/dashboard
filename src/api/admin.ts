@@ -9,6 +9,7 @@ import type {
   InviteUserData,
   UpdateUserData,
   WhatsAppConnection,
+  Invitation,
 } from "../types";
 
 export type {
@@ -101,4 +102,21 @@ export async function getWhatsappConnections(): Promise<WhatsAppConnection[]> {
 
 export async function revokeWhatsappConnection(userId: string): Promise<void> {
   await apiRequest(`/admin/whatsapp/sessions/${userId}/revoke`, { method: "POST" });
+}
+
+// ── Invitations ─────────────────────────────────────────────────────────────
+
+export async function createInvitation(data: {
+  email?: string;
+  role?: string;
+}): Promise<{ invitation: Invitation; inviteUrl: string }> {
+  return apiRequest("/admin/invitations", { method: "POST", body: data });
+}
+
+export async function listInvitations(): Promise<{ items: Invitation[] }> {
+  return apiRequest("/admin/invitations");
+}
+
+export async function revokeInvitation(id: string): Promise<void> {
+  await apiRequest(`/admin/invitations/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

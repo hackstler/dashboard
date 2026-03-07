@@ -1,5 +1,5 @@
 import { apiRequest } from "./http";
-import type { User, LoginResponse } from "../types";
+import type { User, LoginResponse, InviteValidation } from "../types";
 
 export type { AuthStrategyType, LoginResponse } from "../types";
 
@@ -44,6 +44,9 @@ export async function getMe(): Promise<User | null> {
       surname: string | null;
       orgId: string;
       role?: string;
+      onboardingComplete?: boolean;
+      firstName?: string | null;
+      lastName?: string | null;
     }>("/auth/me");
     return {
       id: data.userId,
@@ -52,6 +55,9 @@ export async function getMe(): Promise<User | null> {
       surname: data.surname ?? null,
       orgId: data.orgId,
       role: (data.role === "admin" ? "admin" : data.role === "super_admin" ? "super_admin" : "user") as User["role"],
+      onboardingComplete: data.onboardingComplete,
+      firstName: data.firstName,
+      lastName: data.lastName,
     };
   } catch {
     return null;
@@ -64,6 +70,37 @@ export function logout(): void {
 
 export function isLoggedIn(): boolean {
   return localStorage.getItem("auth_token") !== null;
+}
+
+export async function validateInviteToken(token: string): Promise<InviteValidation> {
+  return apiRequest<InviteValidation>(
+    `/auth/invite/validate?token=${encodeURIComponent(token)}`,
+    { public: true },
+  );
+}
+
+export async function registerWithInvite(data: {
+  inviteToken: string;
+  idToken?: string;
+  email?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+}): Promise<LoginResponse> {
+  const resp = await apiRequest<LoginResponse>("/auth/register-with-invite", {
+    method: "POST",
+    body: data,
+    public: true,
+  });
+  localStorage.setItem("auth_token", resp.token);
+  return resp;
+}
+
+export async function completeOnboarding(): Promise<void> {
+  await apiRequest("/auth/profile", {
+    method: "PATCH",
+    body: { onboardingComplete: true },
+  });
 }
 
 export async function updateProfile(data: {

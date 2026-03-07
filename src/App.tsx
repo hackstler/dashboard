@@ -1,8 +1,11 @@
 import { useEffect } from "react";
+import { Switch, Route } from "wouter";
 import { useAuth } from "./hooks/useAuth";
 import { usePermissions } from "./hooks/usePermissions";
 import { AppProvider, useApp } from "./context/AppContext";
 import { LoginPage } from "./components/pages/LoginPage";
+import { RegisterPage } from "./components/pages/RegisterPage";
+import { OnboardingPage } from "./components/pages/OnboardingPage";
 import { Layout } from "./components/Layout";
 import { OverviewPage } from "./components/pages/OverviewPage";
 import { WhatsAppPage } from "./components/pages/WhatsAppPage";
@@ -40,7 +43,7 @@ const VIEW_COMPONENTS: Record<ActiveView, ReactNode> = {
 
 function AppContent() {
   const auth = useAuth();
-  const { authState, setAuthState, activeView, setActiveView } = useApp();
+  const { authState, setAuthState, activeView, setActiveView, refreshUser } = useApp();
   const { canView } = usePermissions();
 
   useEffect(() => {
@@ -74,6 +77,11 @@ function AppContent() {
     setAuthState({ status: "unauthenticated" });
   };
 
+  const handleOnboardingComplete = async () => {
+    await refreshUser();
+    setActiveView("overview");
+  };
+
   // Redirect to overview if user is on a view they can't access
   useEffect(() => {
     if (authState.status === "authenticated" && !canView(activeView)) {
@@ -97,6 +105,11 @@ function AppContent() {
     return <LoginPage onLogin={handleLogin} />;
   }
 
+  // Onboarding gate: if user hasn't completed onboarding, show onboarding page
+  if (authState.user.onboardingComplete === false) {
+    return <OnboardingPage onComplete={handleOnboardingComplete} />;
+  }
+
   const page = canView(activeView) ? VIEW_COMPONENTS[activeView] : <OverviewPage />;
 
   return (
@@ -111,7 +124,14 @@ function AppContent() {
 function App() {
   return (
     <AppProvider>
-      <AppContent />
+      <Switch>
+        <Route path="/register">
+          <RegisterPage />
+        </Route>
+        <Route>
+          <AppContent />
+        </Route>
+      </Switch>
     </AppProvider>
   );
 }

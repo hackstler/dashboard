@@ -7,6 +7,9 @@ export interface User {
   surname: string | null;
   orgId: string;
   role: "admin" | "user" | "super_admin";
+  onboardingComplete?: boolean;
+  firstName?: string | null;
+  lastName?: string | null;
 }
 
 export type AuthStrategyType = "password" | "firebase";
@@ -240,6 +243,27 @@ export interface IngestResult {
   status: "indexed" | "failed";
   chunkCount: number;
   error?: string;
+}
+
+// ── Invitations ─────────────────────────────────────────────────────────────
+
+export interface Invitation {
+  id: string;
+  orgId: string;
+  role: string;
+  email: string | null;
+  expiresAt: string;
+  usedAt: string | null;
+  createdAt: string;
+}
+
+export interface InviteValidation {
+  valid: boolean;
+  orgId?: string;
+  orgName?: string | null;
+  role?: string;
+  email?: string | null;
+  reason?: "expired" | "used" | "invalid";
 }
 
 // ── UI ──────────────────────────────────────────────────────────────────────
