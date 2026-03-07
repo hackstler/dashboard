@@ -47,6 +47,7 @@ export function RegisterPage() {
         navigate("/", { replace: true });
       }
     }).catch((err) => {
+      console.error("[RegisterPage] Redirect result failed:", err);
       if (!cancelled) setFormError(err instanceof Error ? err.message : "Error al registrar");
     });
     return () => { cancelled = true; };
@@ -110,6 +111,7 @@ export function RegisterPage() {
       );
       goToDashboard();
     } catch (err) {
+      console.error("[RegisterPage] Credential registration failed:", err);
       setFormError(err instanceof Error ? err.message : "Error al registrar");
     } finally {
       setSubmitting(false);
@@ -132,6 +134,7 @@ export function RegisterPage() {
       );
       goToDashboard();
     } catch (err) {
+      console.error("[RegisterPage] Google registration failed:", err);
       setFormError(err instanceof Error ? err.message : "Error al registrar con Google");
     } finally {
       setSubmitting(false);

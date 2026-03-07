@@ -21,6 +21,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     adapter.handleRedirectResult().then((completed) => {
       if (completed && !cancelled) onLogin();
     }).catch((err) => {
+      console.error("[LoginPage] Redirect result failed:", err);
       if (!cancelled) setError(err instanceof Error ? err.message : "Sign-in failed");
     });
     return () => { cancelled = true; };
@@ -47,6 +48,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       await adapter.loginWithGoogle();
       onLogin();
     } catch (err) {
+      console.error("[LoginPage] Google login failed:", err);
       setError(err instanceof Error ? err.message : "Sign-in failed");
     } finally {
       setLoading(false);
