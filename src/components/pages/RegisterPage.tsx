@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearch, useLocation } from "wouter";
 import { useAuthAdapter } from "../../hooks/useAuthAdapter";
-import { validateInviteToken } from "../../api/auth";
+import { isLoggedIn, validateInviteToken } from "../../api/auth";
 import { Card, CardContent } from "../ui/Card";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
@@ -17,7 +17,7 @@ export function RegisterPage() {
   const adapter = useAuthAdapter();
   const isFirebase = adapter.strategyName === "firebase";
 
-  const [state, setState] = useState<"loading" | "invalid" | "form">("loading");
+  const [state, setState] = useState<"loading" | "invalid" | "form" | "done">("loading");
   const [validation, setValidation] = useState<InviteValidation | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -29,6 +29,28 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // If user is already logged in (e.g. came back to invite link after registering), go to dashboard
+  useEffect(() => {
+    if (isLoggedIn()) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
+
+  // Handle redirect result on mount (mobile comes back here after Google redirect)
+  useEffect(() => {
+    if (!isFirebase) return;
+    let cancelled = false;
+    adapter.handleRedirectResult().then((completed) => {
+      if (completed && !cancelled) {
+        setState("done");
+        navigate("/", { replace: true });
+      }
+    }).catch((err) => {
+      if (!cancelled) setFormError(err instanceof Error ? err.message : "Error al registrar");
+    });
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!token) {
@@ -60,17 +82,10 @@ export function RegisterPage() {
       });
   }, [token]);
 
-  // Handle redirect result on mount (mobile comes back here after Google redirect)
-  useEffect(() => {
-    if (!isFirebase) return;
-    let cancelled = false;
-    adapter.handleRedirectResult().then((completed) => {
-      if (completed && !cancelled) navigate("/", { replace: true });
-    }).catch((err) => {
-      if (!cancelled) setFormError(err instanceof Error ? err.message : "Error al registrar");
-    });
-    return () => { cancelled = true; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const goToDashboard = () => {
+    setState("done");
+    navigate("/", { replace: true });
+  };
 
   const handleCredentialRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +108,7 @@ export function RegisterPage() {
         firstName || undefined,
         lastName || undefined,
       );
-      navigate("/", { replace: true });
+      goToDashboard();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Error al registrar");
     } finally {
@@ -102,15 +117,20 @@ export function RegisterPage() {
   };
 
   const handleGoogleRegister = async () => {
+    if (!firstName.trim() || !lastName.trim()) {
+      setFormError("Debes rellenar tu nombre y apellido antes de continuar");
+      return;
+    }
+
     setFormError(null);
     setSubmitting(true);
     try {
       await adapter.registerWithGoogle(
         token!,
-        firstName || undefined,
-        lastName || undefined,
+        firstName.trim(),
+        lastName.trim(),
       );
-      navigate("/", { replace: true });
+      goToDashboard();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Error al registrar con Google");
     } finally {
@@ -131,7 +151,7 @@ export function RegisterPage() {
             <span className="text-white text-2xl font-bold">A</span>
           </div>
 
-          {state === "loading" && (
+          {(state === "loading" || state === "done") && (
             <>
               <Skeleton className="h-8 w-48" />
               <Skeleton className="h-4 w-64 mt-2" />
@@ -161,7 +181,7 @@ export function RegisterPage() {
           )}
         </div>
 
-        {state === "loading" && (
+        {(state === "loading" || state === "done") && (
           <Card className="gradient-border">
             <CardContent>
               <div className="space-y-3">
@@ -227,6 +247,7 @@ export function RegisterPage() {
                     size="lg"
                     onClick={handleGoogleRegister}
                     loading={submitting}
+                    disabled={!firstName.trim() || !lastName.trim()}
                     className="w-full"
                   >
                     Registrarse con Google
