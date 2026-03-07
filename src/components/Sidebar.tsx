@@ -1,5 +1,6 @@
 import { useApp } from "../context/AppContext";
 import { usePermissions } from "../hooks/usePermissions";
+import { VIEW_PERMISSIONS } from "../permissions";
 import type { ActiveView } from "../types";
 import type { Permission } from "../permissions";
 import {
@@ -20,20 +21,24 @@ interface NavItem {
   label: string;
   icon: ReactNode;
   requiredPermission?: Permission;
-  section?: "main" | "admin" | "super";
+  section: "main" | "admin" | "super";
 }
 
+/**
+ * Navigation items — requiredPermission is derived from VIEW_PERMISSIONS
+ * where available, or set explicitly for items not in that map.
+ */
 const allNavItems: NavItem[] = [
   { id: "overview", label: "Overview", icon: <HomeIcon size={18} />, section: "main" },
   { id: "whatsapp", label: "Channels", icon: <MessageCircleIcon size={18} />, section: "main" },
-  { id: "knowledge-upload", label: "Upload", icon: <UploadIcon size={18} />, requiredPermission: "manage_knowledge", section: "main" },
-  { id: "knowledge-list", label: "Knowledge Base", icon: <DatabaseIcon size={18} />, requiredPermission: "view_knowledge", section: "main" },
+  { id: "knowledge-upload", label: "Upload", icon: <UploadIcon size={18} />, requiredPermission: VIEW_PERMISSIONS["knowledge-upload"], section: "main" },
+  { id: "knowledge-list", label: "Knowledge Base", icon: <DatabaseIcon size={18} />, requiredPermission: VIEW_PERMISSIONS["knowledge-list"], section: "main" },
   { id: "settings", label: "Settings", icon: <SettingsIcon size={18} />, section: "main" },
   { id: "my-organization", label: "My Organization", icon: <BuildingIcon size={18} />, requiredPermission: "view_own_org", section: "main" },
-  { id: "users", label: "Users", icon: <UsersIcon size={18} />, requiredPermission: "view_org_users", section: "admin" },
-  { id: "catalogs", label: "Catalog", icon: <TagIcon size={18} />, requiredPermission: "manage_catalogs", section: "admin" },
-  { id: "organizations", label: "Organizations", icon: <BuildingIcon size={18} />, requiredPermission: "view_all_orgs", section: "super" },
-  { id: "whatsapp-connections", label: "WhatsApp Mgmt", icon: <MessageCircleIcon size={18} />, requiredPermission: "view_whatsapp_mgmt", section: "super" },
+  { id: "users", label: "Users", icon: <UsersIcon size={18} />, requiredPermission: VIEW_PERMISSIONS["users"], section: "admin" },
+  { id: "catalogs", label: "Catalog", icon: <TagIcon size={18} />, requiredPermission: VIEW_PERMISSIONS["catalogs"], section: "admin" },
+  { id: "organizations", label: "Organizations", icon: <BuildingIcon size={18} />, requiredPermission: VIEW_PERMISSIONS["organizations"], section: "super" },
+  { id: "whatsapp-connections", label: "WhatsApp Mgmt", icon: <MessageCircleIcon size={18} />, requiredPermission: VIEW_PERMISSIONS["whatsapp-connections"], section: "super" },
 ];
 
 interface SidebarProps {

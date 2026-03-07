@@ -74,3 +74,24 @@ export function getPermissionScope(role: Role, permission: Permission): Permissi
 export function getPermissionSet(role: Role): Set<Permission> {
   return new Set(ROLE_PERMISSIONS[role].map((p) => p.permission));
 }
+
+// ── View access control (single source of truth) ────────────────────────────
+
+/**
+ * Maps each view to the permission required to access it.
+ * Views not listed here are accessible to all authenticated users.
+ */
+export const VIEW_PERMISSIONS: Record<string, Permission> = {
+  "knowledge-upload": "manage_knowledge",
+  "knowledge-list": "view_knowledge",
+  users: "view_org_users",
+  organizations: "view_all_orgs",
+  catalogs: "manage_catalogs",
+  "whatsapp-connections": "view_whatsapp_mgmt",
+};
+
+export function canAccessView(role: Role, view: string): boolean {
+  const required = VIEW_PERMISSIONS[view];
+  if (!required) return true;
+  return hasPermission(role, required);
+}

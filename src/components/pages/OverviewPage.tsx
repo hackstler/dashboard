@@ -201,7 +201,7 @@ export function OverviewPage() {
             <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-brand/10 flex items-center justify-center">
               <BuildingIcon size={20} className="text-brand" />
             </div>
-            <Badge variant={user?.role === "admin" ? "info" : "default"}>
+            <Badge variant={can("view_org_users") ? "info" : "default"}>
               {user?.role ?? "user"}
             </Badge>
           </div>
@@ -213,11 +213,6 @@ export function OverviewPage() {
           <p className="text-xs text-text-muted font-mono mb-4">
             {orgName ? user?.orgId : "Organization"}
           </p>
-          <p className="text-xs text-text-dim">
-            {user?.role === "admin"
-              ? "Full access to all resources"
-              : "Member access"}
-          </p>
         </div>
       </div>
 
@@ -227,13 +222,15 @@ export function OverviewPage() {
           Quick Actions
         </h2>
         <div className="flex flex-wrap gap-3">
-          <Button
-            variant="primary"
-            icon={<UploadIcon size={16} />}
-            onClick={() => setActiveView("knowledge-upload")}
-          >
-            Upload content
-          </Button>
+          {can("manage_knowledge") && (
+            <Button
+              variant="primary"
+              icon={<UploadIcon size={16} />}
+              onClick={() => setActiveView("knowledge-upload")}
+            >
+              Upload content
+            </Button>
+          )}
           <Button
             variant="secondary"
             icon={<MessageCircleIcon size={16} />}

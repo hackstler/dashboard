@@ -16,11 +16,32 @@ import { MyOrganizationPage } from "./components/pages/MyOrganizationPage";
 import { CatalogPage } from "./components/pages/CatalogPage";
 import { WhatsAppConnectionsPage } from "./components/pages/WhatsAppConnectionsPage";
 import { Skeleton } from "./components/ui/Skeleton";
+import type { ActiveView } from "./types";
+import type { ReactNode } from "react";
+
+/**
+ * Maps each view to its page component.
+ * The permission guard is handled centrally via VIEW_PERMISSIONS —
+ * no per-view `can()` checks needed here.
+ */
+const VIEW_COMPONENTS: Record<ActiveView, ReactNode> = {
+  overview: <OverviewPage />,
+  whatsapp: <WhatsAppPage />,
+  "knowledge-upload": <KnowledgeUploadPage />,
+  "knowledge-list": <KnowledgeListPage />,
+  users: <UsersPage />,
+  organizations: <OrganizationsPage />,
+  catalogs: <CatalogPage />,
+  "whatsapp-connections": <WhatsAppConnectionsPage />,
+  settings: <SettingsPage />,
+  profile: <ProfilePage />,
+  "my-organization": <MyOrganizationPage />,
+};
 
 function AppContent() {
   const auth = useAuth();
-  const { authState, setAuthState, activeView } = useApp();
-  const { can } = usePermissions();
+  const { authState, setAuthState, activeView, setActiveView } = useApp();
+  const { canView } = usePermissions();
 
   useEffect(() => {
     if (!auth.isLoggedIn()) {
@@ -30,6 +51,7 @@ function AppContent() {
     auth.getMe().then((me) => {
       if (me) {
         setAuthState({ status: "authenticated", user: me });
+        setActiveView("overview");
       } else {
         auth.logout();
         setAuthState({ status: "unauthenticated" });
@@ -42,6 +64,7 @@ function AppContent() {
     auth.getMe().then((me) => {
       if (me) {
         setAuthState({ status: "authenticated", user: me });
+        setActiveView("overview");
       }
     });
   };
@@ -50,6 +73,13 @@ function AppContent() {
     auth.logout();
     setAuthState({ status: "unauthenticated" });
   };
+
+  // Redirect to overview if user is on a view they can't access
+  useEffect(() => {
+    if (authState.status === "authenticated" && !canView(activeView)) {
+      setActiveView("overview");
+    }
+  }, [authState.status, activeView, canView, setActiveView]);
 
   if (authState.status === "loading") {
     return (
@@ -67,20 +97,12 @@ function AppContent() {
     return <LoginPage onLogin={handleLogin} />;
   }
 
+  const page = canView(activeView) ? VIEW_COMPONENTS[activeView] : <OverviewPage />;
+
   return (
     <Layout onLogout={handleLogout}>
       <div className="animate-fade-in-up" key={activeView}>
-        {activeView === "overview" && <OverviewPage />}
-        {activeView === "whatsapp" && <WhatsAppPage />}
-        {activeView === "knowledge-upload" && can("manage_knowledge") && <KnowledgeUploadPage />}
-        {activeView === "knowledge-list" && can("view_knowledge") && <KnowledgeListPage />}
-        {activeView === "users" && can("view_org_users") && <UsersPage />}
-        {activeView === "organizations" && can("view_all_orgs") && <OrganizationsPage />}
-        {activeView === "catalogs" && can("manage_catalogs") && <CatalogPage />}
-        {activeView === "whatsapp-connections" && can("view_whatsapp_mgmt") && <WhatsAppConnectionsPage />}
-        {activeView === "profile" && <ProfilePage />}
-        {activeView === "my-organization" && <MyOrganizationPage />}
-        {activeView === "settings" && <SettingsPage />}
+        {page}
       </div>
     </Layout>
   );
