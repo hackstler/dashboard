@@ -12,6 +12,7 @@ import {
 } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
 import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "../ui/EmptyState";
 import { MessageCircleIcon } from "../ui/Icons";
@@ -28,10 +29,11 @@ function isMobile(): boolean {
 
 export function OnboardingPage({ onComplete }: OnboardingPageProps) {
   const { authState, addToast } = useApp();
-  const { status, qrData, loading, enable } = useChannels();
+  const { status, qrData, pairingCode, loading, enable } = useChannels();
   const [enabling, setEnabling] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [qrImage, setQrImage] = useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const mobile = isMobile();
 
   const user = authState.status === "authenticated" ? authState.user : null;
@@ -47,15 +49,22 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
       .catch(() => setQrImage(null));
   }, [qrData]);
 
-  const handleEnable = async () => {
+  const handleEnable = async (linkingMethod?: "qr" | "code", phone?: string) => {
     setEnabling(true);
     try {
-      await enable();
+      await enable(linkingMethod, phone);
     } catch {
       addToast("Error al activar WhatsApp", "error");
     } finally {
       setEnabling(false);
     }
+  };
+
+  const handleMobileEnable = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleaned = phoneNumber.replace(/^\+/, "");
+    if (!cleaned) return;
+    await handleEnable("code", cleaned);
   };
 
   const handleComplete = async () => {
@@ -117,11 +126,9 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
                   variant={
                     isConnected
                       ? "success"
-                      : status?.status === "qr"
+                      : status?.status === "qr" || status?.status === "code" || status?.status === "pending"
                         ? "warning"
-                        : status?.status === "pending"
-                          ? "warning"
-                          : "default"
+                        : "default"
                   }
                   dot
                   pulse={isConnected}
@@ -130,9 +137,11 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
                     ? "Conectado"
                     : status?.status === "qr"
                       ? "Esperando escaneo"
-                      : status?.status === "pending"
-                        ? "Activando..."
-                        : "No activado"}
+                      : status?.status === "code"
+                        ? "Esperando codigo"
+                        : status?.status === "pending"
+                          ? "Activando..."
+                          : "No activado"}
                 </Badge>
               ) : (
                 <Skeleton className="h-5 w-24" />
@@ -145,14 +154,70 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
 
           <CardContent>
             {mobile ? (
-              <div className="text-center py-6 animate-fade-in">
-                <p className="text-sm text-text-muted mb-2">
-                  Para escanear el código QR, abre esta página desde un ordenador.
-                </p>
-                <p className="text-xs text-text-dim">
-                  Puedes saltar este paso y configurarlo más tarde.
-                </p>
-              </div>
+              isConnected ? (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="flex items-center gap-4 p-3 bg-green-muted rounded-[var(--radius-md)] border border-green/10">
+                    <div className="w-10 h-10 rounded-full bg-green/20 flex items-center justify-center shadow-[var(--shadow-glow-green)]">
+                      <MessageCircleIcon size={20} className="text-green" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-text-bright">WhatsApp Conectado</p>
+                      {status?.phone && (
+                        <p className="text-xs text-text-muted font-mono">{status.phone}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : status?.status === "code" ? (
+                <div className="flex flex-col items-center gap-4 animate-scale-in">
+                  {pairingCode ? (
+                    <div className="px-6 py-4 bg-surface border border-border rounded-[var(--radius-lg)] shadow-[var(--shadow-card-hover)]">
+                      <p className="text-3xl font-bold font-mono tracking-[0.3em] text-text-bright text-center">
+                        {pairingCode}
+                      </p>
+                    </div>
+                  ) : (
+                    <Skeleton className="h-12 w-48 rounded-[var(--radius-md)]" />
+                  )}
+                  <div className="text-center">
+                    <p className="text-sm text-text-muted">Introduce este codigo en WhatsApp</p>
+                    <p className="text-xs text-text-dim mt-1">
+                      Abre WhatsApp &rarr; Dispositivos vinculados &rarr; Vincular con numero de telefono
+                    </p>
+                  </div>
+                </div>
+              ) : status?.status === "pending" && status.linkingMethod === "code" ? (
+                <div className="flex flex-col items-center py-8 animate-fade-in">
+                  <Skeleton className="h-12 w-48 rounded-[var(--radius-md)]" />
+                  <p className="text-xs text-text-muted mt-4 animate-pulse">
+                    Generando codigo...
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleMobileEnable} className="space-y-4 animate-fade-in">
+                  <EmptyState
+                    icon={<MessageCircleIcon size={40} />}
+                    title="WhatsApp no activado"
+                    description="Introduce tu numero de telefono para vincular WhatsApp con un codigo."
+                  />
+                  <Input
+                    label="Numero de telefono"
+                    type="tel"
+                    placeholder="+34612345678"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    required
+                  />
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    loading={enabling}
+                    disabled={!phoneNumber.replace(/^\+/, "")}
+                  >
+                    Vincular WhatsApp
+                  </Button>
+                </form>
+              )
             ) : loading && !status ? (
               <div className="space-y-3">
                 <Skeleton className="h-4 w-full" />
