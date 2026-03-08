@@ -18,6 +18,7 @@ import { ProfilePage } from "./components/pages/ProfilePage";
 import { MyOrganizationPage } from "./components/pages/MyOrganizationPage";
 import { CatalogPage } from "./components/pages/CatalogPage";
 import { WhatsAppConnectionsPage } from "./components/pages/WhatsAppConnectionsPage";
+import { QuotesPage } from "./components/pages/QuotesPage";
 import { Skeleton } from "./components/ui/Skeleton";
 import type { ActiveView } from "./types";
 import type { ReactNode } from "react";
@@ -36,6 +37,7 @@ const VIEW_COMPONENTS: Record<ActiveView, ReactNode> = {
   organizations: <OrganizationsPage />,
   catalogs: <CatalogPage />,
   "whatsapp-connections": <WhatsAppConnectionsPage />,
+  quotes: <QuotesPage />,
   settings: <SettingsPage />,
   profile: <ProfilePage />,
   "my-organization": <MyOrganizationPage />,

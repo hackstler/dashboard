@@ -37,7 +37,8 @@ export type ActiveView =
   | "whatsapp-connections"
   | "settings"
   | "my-organization"
-  | "profile";
+  | "profile"
+  | "quotes";
 
 // ── Admin ───────────────────────────────────────────────────────────────────
 
@@ -203,6 +204,18 @@ export interface UpdateItemData {
   unit?: string;
   sortOrder?: number;
   isActive?: boolean;
+}
+
+// ── Quotes ─────────────────────────────────────────────────────────────
+
+export interface QuoteSummary {
+  id: string;
+  quoteNumber: string;
+  clientName: string;
+  clientAddress: string | null;
+  total: string;
+  filename: string;
+  createdAt: string;
 }
 
 // ── Documents ───────────────────────────────────────────────────────────────

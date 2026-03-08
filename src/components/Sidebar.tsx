@@ -13,6 +13,7 @@ import {
   BuildingIcon,
   TagIcon,
   SettingsIcon,
+  FileTextIcon,
 } from "./ui/Icons";
 import type { ReactNode } from "react";
 
@@ -33,6 +34,7 @@ const allNavItems: NavItem[] = [
   { id: "whatsapp", label: "Channels", icon: <MessageCircleIcon size={18} />, section: "main" },
   { id: "knowledge-upload", label: "Upload", icon: <UploadIcon size={18} />, requiredPermission: VIEW_PERMISSIONS["knowledge-upload"], section: "main" },
   { id: "knowledge-list", label: "Knowledge Base", icon: <DatabaseIcon size={18} />, requiredPermission: VIEW_PERMISSIONS["knowledge-list"], section: "main" },
+  { id: "quotes", label: "Presupuestos", icon: <FileTextIcon size={18} />, section: "main" },
   { id: "settings", label: "Settings", icon: <SettingsIcon size={18} />, section: "main" },
   { id: "my-organization", label: "My Organization", icon: <BuildingIcon size={18} />, requiredPermission: "view_own_org", section: "main" },
   { id: "users", label: "Users", icon: <UsersIcon size={18} />, requiredPermission: VIEW_PERMISSIONS["users"], section: "admin" },
