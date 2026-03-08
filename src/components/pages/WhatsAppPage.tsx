@@ -11,6 +11,7 @@ import {
 } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
 import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "../ui/EmptyState";
 import { MessageCircleIcon } from "../ui/Icons";
@@ -23,15 +24,19 @@ function isMobile(): boolean {
 
 export function WhatsAppPage() {
   const { addToast } = useApp();
-  const { status, qrData, loading, enable, disconnect } = useChannels();
+  const { status, qrData, pairingCode, loading, enable, disconnect } =
+    useChannels();
   const [disconnecting, setDisconnecting] = useState(false);
   const [enabling, setEnabling] = useState(false);
   const mobile = isMobile();
 
-  const handleEnable = async () => {
+  const handleEnable = async (
+    linkingMethod?: "qr" | "code",
+    phoneNumber?: string,
+  ) => {
     setEnabling(true);
     try {
-      await enable();
+      await enable(linkingMethod, phoneNumber);
       addToast("WhatsApp session created", "success");
     } catch {
       addToast("Failed to enable WhatsApp", "error");
@@ -79,11 +84,11 @@ export function WhatsAppPage() {
                 variant={
                   status?.status === "connected"
                     ? "success"
-                    : status?.status === "qr"
+                    : status?.status === "qr" ||
+                        status?.status === "code" ||
+                        status?.status === "pending"
                       ? "warning"
-                      : status?.status === "pending"
-                        ? "warning"
-                        : "default"
+                      : "default"
                 }
                 dot
                 pulse={status?.status === "connected"}
@@ -92,11 +97,13 @@ export function WhatsAppPage() {
                   ? "Connected"
                   : status?.status === "qr"
                     ? "Awaiting scan"
-                    : status?.status === "pending"
-                      ? "Enabling..."
-                      : status?.status === "not_enabled"
-                        ? "Not enabled"
-                        : "Disconnected"}
+                    : status?.status === "code"
+                      ? "Awaiting code"
+                      : status?.status === "pending"
+                        ? "Enabling..."
+                        : status?.status === "not_enabled"
+                          ? "Not enabled"
+                          : "Disconnected"}
               </Badge>
             )}
           </div>
@@ -106,16 +113,7 @@ export function WhatsAppPage() {
         </CardHeader>
 
         <CardContent>
-          {mobile && status?.status !== "connected" ? (
-            <div className="text-center py-6 animate-fade-in">
-              <p className="text-sm text-text-muted mb-2">
-                Para escanear el código QR, abre esta página desde un ordenador.
-              </p>
-              <p className="text-xs text-text-dim">
-                El código QR no se puede escanear desde el mismo teléfono.
-              </p>
-            </div>
-          ) : loading && !status ? (
+          {loading && !status ? (
             <div className="space-y-3">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-2/3" />
@@ -127,6 +125,23 @@ export function WhatsAppPage() {
               onDisconnect={handleDisconnect}
               disconnecting={disconnecting}
             />
+          ) : mobile ? (
+            status?.status === "code" ? (
+              <PairingCodeContent pairingCode={pairingCode} />
+            ) : status?.status === "pending" &&
+              status.linkingMethod === "code" ? (
+              <div className="flex flex-col items-center py-8 animate-fade-in">
+                <Skeleton className="h-12 w-48 rounded-[var(--radius-md)]" />
+                <p className="text-xs text-text-muted mt-4 animate-pulse">
+                  Generando codigo...
+                </p>
+              </div>
+            ) : (
+              <MobileNotEnabledContent
+                onEnable={handleEnable}
+                enabling={enabling}
+              />
+            )
           ) : status?.status === "qr" ? (
             <QrContent qrData={qrData} />
           ) : status?.status === "pending" ? (
@@ -210,6 +225,85 @@ function QrContent({ qrData }: { qrData: string | null }) {
         <p className="text-xs text-text-dim mt-1">
           Open WhatsApp &rarr; Settings &rarr; Linked Devices &rarr; Link a
           Device
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function MobileNotEnabledContent({
+  onEnable,
+  enabling,
+}: {
+  onEnable: (linkingMethod: "code", phoneNumber: string) => void;
+  enabling: boolean;
+}) {
+  const [phoneNumber, setPhoneNumber] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleaned = phoneNumber.replace(/^\+/, "");
+    if (!cleaned) return;
+    onEnable("code", cleaned);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in">
+      <EmptyState
+        icon={<MessageCircleIcon size={40} />}
+        title="WhatsApp not enabled"
+        description="Introduce tu numero de telefono para vincular WhatsApp con un codigo."
+      />
+      <Input
+        label="Numero de telefono"
+        type="tel"
+        placeholder="+34612345678"
+        value={phoneNumber}
+        onChange={(e) => setPhoneNumber(e.target.value)}
+        required
+      />
+      <Button
+        type="submit"
+        variant="primary"
+        loading={enabling}
+        disabled={!phoneNumber.replace(/^\+/, "")}
+      >
+        Vincular WhatsApp
+      </Button>
+    </form>
+  );
+}
+
+function PairingCodeContent({
+  pairingCode,
+}: {
+  pairingCode: string | null;
+}) {
+  if (!pairingCode) {
+    return (
+      <div className="flex flex-col items-center py-8 animate-fade-in">
+        <Skeleton className="h-12 w-48 rounded-[var(--radius-md)]" />
+        <p className="text-xs text-text-muted mt-4 animate-pulse">
+          Generando codigo...
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-4 animate-scale-in">
+      <div className="px-6 py-4 bg-surface border border-border rounded-[var(--radius-lg)] shadow-[var(--shadow-card-hover)]">
+        <p className="text-3xl font-bold font-mono tracking-[0.3em] text-text-bright text-center">
+          {pairingCode}
+        </p>
+      </div>
+      <div className="text-center">
+        <p className="text-sm text-text-muted">
+          Introduce este codigo en WhatsApp
+        </p>
+        <p className="text-xs text-text-dim mt-1">
+          Abre WhatsApp &rarr; Dispositivos vinculados &rarr; Vincular con
+          numero de telefono &rarr; Introduce este codigo
         </p>
       </div>
     </div>

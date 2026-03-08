@@ -17,8 +17,21 @@ export async function getWhatsappQr(): Promise<string | null> {
   return json?.data.qrData ?? null;
 }
 
-export async function enableWhatsapp(): Promise<void> {
-  await apiRequest("/channels/whatsapp/enable", { method: "POST" });
+export async function enableWhatsapp(
+  linkingMethod?: "qr" | "code",
+  phoneNumber?: string,
+): Promise<void> {
+  await apiRequest("/channels/whatsapp/enable", {
+    method: "POST",
+    body: { linkingMethod, phoneNumber },
+  });
+}
+
+export async function getWhatsappPairingCode(): Promise<string | null> {
+  const json = await apiRequestNullable<{ data: { pairingCode: string } }>(
+    "/channels/whatsapp/pairing-code",
+  );
+  return json?.data.pairingCode ?? null;
 }
 
 export async function disconnectWhatsapp(): Promise<void> {

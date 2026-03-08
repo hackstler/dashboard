@@ -131,8 +131,10 @@ export interface UpdateOrganizationData {
 // ── Channels ────────────────────────────────────────────────────────────────
 
 export interface WhatsAppStatus {
-  status: "not_enabled" | "pending" | "disconnected" | "qr" | "connected";
+  status: "not_enabled" | "pending" | "disconnected" | "qr" | "code" | "connected";
   phone: string | null;
+  linkingMethod?: "qr" | "code";
+  pairingCode?: string | null;
   updatedAt?: string;
 }
 

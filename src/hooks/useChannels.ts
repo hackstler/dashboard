@@ -3,6 +3,7 @@ import { usePolling } from "./usePolling";
 import {
   getWhatsappStatus,
   getWhatsappQr,
+  getWhatsappPairingCode,
   enableWhatsapp,
   disconnectWhatsapp,
 } from "../api/channels";
@@ -11,10 +12,11 @@ import type { WhatsAppStatus } from "../types";
 interface UseChannelsReturn {
   status: WhatsAppStatus | null;
   qrData: string | null;
+  pairingCode: string | null;
   loading: boolean;
   error: string | null;
   refetch: () => void;
-  enable: () => Promise<void>;
+  enable: (linkingMethod?: "qr" | "code", phoneNumber?: string) => Promise<void>;
   disconnect: () => Promise<void>;
 }
 
@@ -30,13 +32,23 @@ export function useChannels(pollingInterval = 3000): UseChannelsReturn {
   const { data: qrData } = usePolling<string | null>(
     getWhatsappQr,
     pollingInterval,
-    isQrPhase
+    isQrPhase,
   );
 
-  const enable = useCallback(async () => {
-    await enableWhatsapp();
-    refetch();
-  }, [refetch]);
+  const isCodePhase = status?.status === "code";
+  const { data: pairingCode } = usePolling<string | null>(
+    getWhatsappPairingCode,
+    pollingInterval,
+    isCodePhase,
+  );
+
+  const enable = useCallback(
+    async (linkingMethod?: "qr" | "code", phoneNumber?: string) => {
+      await enableWhatsapp(linkingMethod, phoneNumber);
+      refetch();
+    },
+    [refetch],
+  );
 
   const disconnect = useCallback(async () => {
     await disconnectWhatsapp();
@@ -46,6 +58,7 @@ export function useChannels(pollingInterval = 3000): UseChannelsReturn {
   return {
     status,
     qrData,
+    pairingCode,
     loading,
     error,
     refetch,
