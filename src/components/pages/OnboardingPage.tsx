@@ -267,7 +267,7 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
                   title="WhatsApp no activado"
                   description="Activa WhatsApp para conectar tu teléfono y chatear con el asistente directamente."
                 />
-                <Button variant="primary" onClick={handleEnable} loading={enabling}>
+                <Button variant="primary" onClick={() => handleEnable()} loading={enabling}>
                   Activar WhatsApp
                 </Button>
               </div>
