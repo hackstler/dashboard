@@ -22,6 +22,29 @@ function isMobile(): boolean {
   );
 }
 
+type BadgeVariant = "success" | "warning" | "default";
+
+function getBadgeProps(statusValue: string | undefined): {
+  variant: BadgeVariant;
+  pulse: boolean;
+  label: string;
+} {
+  switch (statusValue) {
+    case "connected":
+      return { variant: "success", pulse: true, label: "Connected" };
+    case "qr":
+      return { variant: "warning", pulse: false, label: "Awaiting scan" };
+    case "code":
+      return { variant: "warning", pulse: false, label: "Awaiting code" };
+    case "pending":
+      return { variant: "warning", pulse: false, label: "Enabling..." };
+    case "not_enabled":
+      return { variant: "default", pulse: false, label: "Not enabled" };
+    default:
+      return { variant: "default", pulse: false, label: "Disconnected" };
+  }
+}
+
 export function WhatsAppPage() {
   const { addToast } = useApp();
   const { status, qrData, pairingCode, loading, enable, disconnect } =
@@ -57,6 +80,52 @@ export function WhatsAppPage() {
     }
   };
 
+  function renderContent() {
+    if (loading && !status) {
+      return (
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-10 w-32 mt-2" />
+        </div>
+      );
+    }
+
+    if (status?.status === "connected") {
+      return (
+        <ConnectedContent
+          phone={status.phone}
+          onDisconnect={handleDisconnect}
+          disconnecting={disconnecting}
+        />
+      );
+    }
+
+    if (mobile) {
+      if (status?.status === "code") {
+        return <PairingCodeContent pairingCode={pairingCode} />;
+      }
+      if (status?.status === "pending" && status.linkingMethod === "code") {
+        return <MobilePendingCodeContent />;
+      }
+      return (
+        <MobileNotEnabledContent onEnable={handleEnable} enabling={enabling} />
+      );
+    }
+
+    if (status?.status === "qr") {
+      return <QrContent qrData={qrData} />;
+    }
+
+    if (status?.status === "pending") {
+      return <PendingContent />;
+    }
+
+    return <NotEnabledContent onEnable={handleEnable} enabling={enabling} />;
+  }
+
+  const badge = getBadgeProps(status?.status);
+
   return (
     <div>
       <div className="mb-8 animate-fade-in-up">
@@ -80,30 +149,8 @@ export function WhatsAppPage() {
             {loading && !status ? (
               <Skeleton className="h-5 w-24" />
             ) : (
-              <Badge
-                variant={
-                  status?.status === "connected"
-                    ? "success"
-                    : status?.status === "qr" ||
-                        status?.status === "code" ||
-                        status?.status === "pending"
-                      ? "warning"
-                      : "default"
-                }
-                dot
-                pulse={status?.status === "connected"}
-              >
-                {status?.status === "connected"
-                  ? "Connected"
-                  : status?.status === "qr"
-                    ? "Awaiting scan"
-                    : status?.status === "code"
-                      ? "Awaiting code"
-                      : status?.status === "pending"
-                        ? "Enabling..."
-                        : status?.status === "not_enabled"
-                          ? "Not enabled"
-                          : "Disconnected"}
+              <Badge variant={badge.variant} dot pulse={badge.pulse}>
+                {badge.label}
               </Badge>
             )}
           </div>
@@ -112,47 +159,7 @@ export function WhatsAppPage() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
-          {loading && !status ? (
-            <div className="space-y-3">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
-              <Skeleton className="h-10 w-32 mt-2" />
-            </div>
-          ) : status?.status === "connected" ? (
-            <ConnectedContent
-              phone={status.phone}
-              onDisconnect={handleDisconnect}
-              disconnecting={disconnecting}
-            />
-          ) : mobile ? (
-            status?.status === "code" ? (
-              <PairingCodeContent pairingCode={pairingCode} />
-            ) : status?.status === "pending" &&
-              status.linkingMethod === "code" ? (
-              <div className="flex flex-col items-center py-8 animate-fade-in">
-                <Skeleton className="h-12 w-48 rounded-[var(--radius-md)]" />
-                <p className="text-xs text-text-muted mt-4 animate-pulse">
-                  Generando codigo...
-                </p>
-              </div>
-            ) : (
-              <MobileNotEnabledContent
-                onEnable={handleEnable}
-                enabling={enabling}
-              />
-            )
-          ) : status?.status === "qr" ? (
-            <QrContent qrData={qrData} />
-          ) : status?.status === "pending" ? (
-            <PendingContent />
-          ) : (
-            <NotEnabledContent
-              onEnable={handleEnable}
-              enabling={enabling}
-            />
-          )}
-        </CardContent>
+        <CardContent>{renderContent()}</CardContent>
       </Card>
     </div>
   );
@@ -231,6 +238,8 @@ function QrContent({ qrData }: { qrData: string | null }) {
   );
 }
 
+const SPANISH_MOBILE_RE = /^[67]\d{8}$/;
+
 function MobileNotEnabledContent({
   onEnable,
   enabling,
@@ -238,39 +247,106 @@ function MobileNotEnabledContent({
   onEnable: (linkingMethod: "code", phoneNumber: string) => void;
   enabling: boolean;
 }) {
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [digits, setDigits] = useState("");
+  const [foreignError, setForeignError] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const isValid = SPANISH_MOBILE_RE.test(digits);
+  const showLengthHint = digits.length > 0 && digits.length < 9 && !foreignError;
+  const showPatternHint =
+    digits.length === 9 && !isValid && !foreignError;
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value;
+
+    // Detect paste / typing of a foreign international prefix
+    if (raw.startsWith("+") && !raw.startsWith("+34")) {
+      setForeignError(true);
+      setDigits("");
+      return;
+    }
+
+    setForeignError(false);
+
+    // Strip +34 prefix if user pasted it, then keep only digits
+    const stripped = raw.startsWith("+34") ? raw.slice(3) : raw;
+    const onlyDigits = stripped.replace(/[^0-9]/g, "");
+
+    // Cap at 9 digits
+    setDigits(onlyDigits.slice(0, 9));
+  }
+
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const cleaned = phoneNumber.replace(/^\+/, "");
-    if (!cleaned) return;
-    onEnable("code", cleaned);
-  };
+    if (!isValid) return;
+    onEnable("code", "34" + digits);
+  }
+
+  const errorMessage = foreignError
+    ? "Solo numeros espanoles (+34) por ahora"
+    : showPatternHint
+      ? "El numero debe empezar por 6 o 7"
+      : undefined;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in">
       <EmptyState
         icon={<MessageCircleIcon size={40} />}
-        title="WhatsApp not enabled"
-        description="Introduce tu numero de telefono para vincular WhatsApp con un codigo."
+        title="WhatsApp no activado"
+        description="Introduce tu numero de movil para vincular WhatsApp."
       />
-      <Input
-        label="Numero de telefono"
-        type="tel"
-        placeholder="+34612345678"
-        value={phoneNumber}
-        onChange={(e) => setPhoneNumber(e.target.value)}
-        required
-      />
+      <div className="flex flex-col gap-1.5">
+        <label
+          htmlFor="phone-input"
+          className="text-xs font-medium text-text-muted"
+        >
+          Numero de telefono
+        </label>
+        <div className="flex items-stretch">
+          <span className="inline-flex items-center px-3 bg-surface border border-r-0 border-border rounded-l-[var(--radius-md)] text-sm text-text-muted select-none">
+            +34
+          </span>
+          <input
+            id="phone-input"
+            type="tel"
+            inputMode="numeric"
+            placeholder="612 345 678"
+            value={digits}
+            onChange={handleChange}
+            required
+            className={`w-full bg-surface border border-border text-text text-sm px-3 py-2 rounded-r-[var(--radius-md)] rounded-l-none outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-colors placeholder:text-text-dim ${
+              errorMessage ? "border-red/50" : ""
+            }`}
+          />
+        </div>
+        {errorMessage && (
+          <p className="text-xs text-red">{errorMessage}</p>
+        )}
+        {showLengthHint && (
+          <p className="text-xs text-text-dim">
+            {digits.length}/9 digitos
+          </p>
+        )}
+      </div>
       <Button
         type="submit"
         variant="primary"
         loading={enabling}
-        disabled={!phoneNumber.replace(/^\+/, "")}
+        disabled={!isValid}
       >
         Vincular WhatsApp
       </Button>
     </form>
+  );
+}
+
+function MobilePendingCodeContent() {
+  return (
+    <div className="flex flex-col items-center py-8 animate-fade-in">
+      <Skeleton className="h-12 w-48 rounded-[var(--radius-md)]" />
+      <p className="text-xs text-text-muted mt-4 animate-pulse">
+        Generando codigo...
+      </p>
+    </div>
   );
 }
 
