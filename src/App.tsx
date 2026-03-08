@@ -45,7 +45,7 @@ const VIEW_COMPONENTS: Record<ActiveView, ReactNode> = {
 
 function AppContent() {
   const auth = useAuth();
-  const { authState, setAuthState, activeView, setActiveView, refreshUser } = useApp();
+  const { authState, setAuthState, activeView, setActiveView, navKey, refreshUser } = useApp();
   const { canView } = usePermissions();
 
   useEffect(() => {
@@ -116,7 +116,7 @@ function AppContent() {
 
   return (
     <Layout onLogout={handleLogout}>
-      <div className="animate-fade-in-up" key={activeView}>
+      <div className="animate-fade-in-up" key={navKey}>
         {page}
       </div>
     </Layout>

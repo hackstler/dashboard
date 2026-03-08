@@ -4,6 +4,7 @@ import { usePermissions } from "../../hooks/usePermissions";
 import { useChannels } from "../../hooks/useChannels";
 import { useDocuments } from "../../hooks/useDocuments";
 import { apiRequest } from "../../api/http";
+import { useCatalogs } from "../../hooks/useCatalogs";
 import { useAnimatedCounter } from "../../hooks/useAnimatedCounter";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
@@ -12,6 +13,7 @@ import {
   MessageCircleIcon,
   DatabaseIcon,
   BuildingIcon,
+  TagIcon,
   UploadIcon,
 } from "../ui/Icons";
 
@@ -26,6 +28,10 @@ export function OverviewPage() {
       .then((res) => setOrgName(res.data?.name ?? user.orgId))
       .catch(() => {});
   }, [user?.orgId]);
+  const { catalogs, loading: catalogsLoading } = useCatalogs();
+  const activeCatalog = catalogs.find((c) => c.isActive);
+  const animatedCatalogCount = useAnimatedCounter(catalogs.length);
+
   const { status: waStatus, loading: waLoading } = useChannels(5000);
   const { documents: docs, loading: docsLoading } = useDocuments({
     pollingInterval: 10000,
@@ -63,7 +69,7 @@ export function OverviewPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-10">
         {/* WhatsApp */}
         <div
           className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-1"
@@ -214,10 +220,54 @@ export function OverviewPage() {
             {orgName ? user?.orgId : "Organization"}
           </p>
         </div>
+
+        {/* Catalog */}
+        {can("manage_catalogs") && (
+          <div
+            className="stat-card glow-card bg-surface border border-border rounded-[var(--radius-xl)] p-6 animate-fade-in-up stagger-4"
+            style={
+              {
+                "--stat-accent": "#f59e0b",
+                "--stat-glow": "rgba(245,158,11,0.12)",
+              } as React.CSSProperties
+            }
+          >
+            <div className="flex items-center justify-between mb-5">
+              <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-amber-500/10 flex items-center justify-center">
+                <TagIcon size={20} className="text-amber-500" />
+              </div>
+              {catalogsLoading && catalogs.length === 0 ? (
+                <Skeleton className="h-5 w-24" />
+              ) : (
+                <Badge variant={activeCatalog ? "success" : "default"}>
+                  {activeCatalog?.name ?? "No active"}
+                </Badge>
+              )}
+            </div>
+            <div className="mb-2">
+              {catalogsLoading && catalogs.length === 0 ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <p className="text-3xl sm:text-4xl font-bold text-text-bright tracking-tight tabular-nums">
+                  {animatedCatalogCount}
+                </p>
+              )}
+            </div>
+            <p className="text-xs text-text-muted mb-4">Catalogs</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="-ml-2.5"
+              onClick={() => setActiveView("catalogs")}
+            >
+              View catalog &rarr;
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Quick Actions */}
-      <div className="animate-fade-in-up stagger-4">
+      <div className="animate-fade-in-up stagger-5">
         <h2 className="text-sm font-semibold text-text-bright mb-3">
           Quick Actions
         </h2>

@@ -9,6 +9,7 @@ interface AppContextValue {
   user: User | null;
   activeView: ActiveView;
   setActiveView: (view: ActiveView) => void;
+  navKey: number;
   toasts: Toast[];
   addToast: (message: string, type?: ToastType) => void;
   removeToast: (id: string) => void;
@@ -21,8 +22,14 @@ let toastId = 0;
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [authState, setAuthState] = useState<AuthState>({ status: "loading" });
-  const [activeView, setActiveView] = useState<ActiveView>("overview");
+  const [activeView, setActiveViewRaw] = useState<ActiveView>("overview");
+  const [navKey, setNavKey] = useState(0);
   const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const setActiveView = useCallback((view: ActiveView) => {
+    setActiveViewRaw(view);
+    setNavKey((k) => k + 1);
+  }, []);
 
   const addToast = useCallback((message: string, type: ToastType = "info") => {
     const id = String(++toastId);
@@ -53,6 +60,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         user,
         activeView,
         setActiveView,
+        navKey,
         toasts,
         addToast,
         removeToast,

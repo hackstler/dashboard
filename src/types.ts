@@ -78,6 +78,7 @@ export interface UpdateUserData {
   surname?: string;
   role?: string;
   password?: string;
+  orgId?: string;
 }
 
 // ── Organizations ───────────────────────────────────────────────────────────

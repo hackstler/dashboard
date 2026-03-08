@@ -49,6 +49,7 @@ export function UsersPage() {
   const [editEmail, setEditEmail] = useState("");
   const [editRole, setEditRole] = useState<"admin" | "user" | "super_admin">("user");
   const [editPassword, setEditPassword] = useState("");
+  const [editOrgId, setEditOrgId] = useState("");
 
   // Delete modal
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
@@ -130,12 +131,13 @@ export function UsersPage() {
     if (!editTarget) return;
     setEditing(true);
     try {
-      const data: { email?: string; name?: string; surname?: string; role?: string; password?: string } = {};
+      const data: { email?: string; name?: string; surname?: string; role?: string; password?: string; orgId?: string } = {};
       if (editName !== (editTarget.name ?? "")) data.name = editName;
       if (editSurname !== (editTarget.surname ?? "")) data.surname = editSurname;
       if (editEmail !== editTarget.email) data.email = editEmail;
       if (editRole !== editTarget.role) data.role = editRole;
       if (editPassword) data.password = editPassword;
+      if (editOrgId !== editTarget.orgId) data.orgId = editOrgId;
       await editUser(editTarget.id, data);
       addToast("User updated", "success");
       setEditTarget(null);
@@ -157,6 +159,7 @@ export function UsersPage() {
     setEditEmail(u.email);
     setEditRole(u.role as "admin" | "user" | "super_admin");
     setEditPassword("");
+    setEditOrgId(u.orgId);
   };
 
   const resetEditForm = () => {
@@ -165,6 +168,7 @@ export function UsersPage() {
     setEditEmail("");
     setEditRole("user");
     setEditPassword("");
+    setEditOrgId("");
   };
 
   const handleInvite = async () => {
@@ -530,6 +534,14 @@ export function UsersPage() {
               <option value="super_admin">Super Admin</option>
             </select>
           </div>
+          {user?.role === "super_admin" && (
+            <Input
+              label="Organization ID"
+              placeholder="org-id"
+              value={editOrgId}
+              onChange={(e) => setEditOrgId(e.target.value)}
+            />
+          )}
           {strategy !== "firebase" && (
             <Input
               label="Password (leave blank to keep current)"
