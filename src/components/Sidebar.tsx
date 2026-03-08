@@ -53,9 +53,14 @@ export function Sidebar({ onLogout, mobileOpen, onMobileClose }: SidebarProps) {
   const { user, activeView, setActiveView } = useApp();
   const { can } = usePermissions();
 
-  const visibleItems = allNavItems.filter(
-    (item) => !item.requiredPermission || can(item.requiredPermission)
-  );
+  const visibleItems = allNavItems.filter((item) => {
+    // Feature-flag gate: "quotes" view requires quotes feature or super_admin
+    if (item.id === "quotes") {
+      if (user?.role === "super_admin") return true;
+      if (!user?.orgFeatures?.quotes) return false;
+    }
+    return !item.requiredPermission || can(item.requiredPermission);
+  });
 
   const mainItems = visibleItems.filter((item) => item.section === "main");
   const adminItems = visibleItems.filter((item) => item.section === "admin");

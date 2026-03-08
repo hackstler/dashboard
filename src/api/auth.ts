@@ -47,6 +47,7 @@ export async function getMe(): Promise<User | null> {
       onboardingComplete?: boolean;
       firstName?: string | null;
       lastName?: string | null;
+      orgFeatures?: Record<string, unknown>;
     }>("/auth/me");
     return {
       id: data.userId,
@@ -58,6 +59,7 @@ export async function getMe(): Promise<User | null> {
       onboardingComplete: data.onboardingComplete,
       firstName: data.firstName,
       lastName: data.lastName,
+      orgFeatures: data.orgFeatures as User["orgFeatures"],
     };
   } catch {
     return null;

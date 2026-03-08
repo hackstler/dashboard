@@ -1,5 +1,9 @@
 // ── Auth ────────────────────────────────────────────────────────────────────
 
+export interface OrgFeatures {
+  quotes?: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -10,6 +14,7 @@ export interface User {
   onboardingComplete?: boolean;
   firstName?: string | null;
   lastName?: string | null;
+  orgFeatures?: OrgFeatures;
 }
 
 export type AuthStrategyType = "password" | "firebase";
@@ -156,6 +161,7 @@ export interface CatalogData {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  orgName?: string | null;
 }
 
 export interface CatalogItemData {

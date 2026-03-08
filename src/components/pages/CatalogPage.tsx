@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useCatalogs } from "../../hooks/useCatalogs";
+import { useApp } from "../../context/AppContext";
 import type { CatalogData, CatalogItemData } from "../../types";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
@@ -10,6 +11,8 @@ import { EmptyState } from "../ui/EmptyState";
 import { PlusIcon, TrashIcon, EditIcon, TagIcon, AlertCircleIcon } from "../ui/Icons";
 
 export function CatalogPage() {
+  const { user } = useApp();
+  const isSuperAdmin = user?.role === "super_admin";
   const {
     catalogs,
     selectedCatalogId,
@@ -98,6 +101,11 @@ export function CatalogPage() {
                       Effective: {new Date(catalog.effectiveDate).toLocaleDateString()}
                     </p>
                   </div>
+                  {isSuperAdmin && (catalog.orgName || catalog.orgId) && (
+                    <Badge variant="default">
+                      {catalog.orgName ?? catalog.orgId}
+                    </Badge>
+                  )}
                   <Badge
                     variant={catalog.isActive ? "success" : "default"}
                     dot
