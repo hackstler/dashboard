@@ -48,7 +48,7 @@ export function QuotesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 animate-fade-in-up">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold gradient-text tracking-tight">
-            Presupuestos
+            Quotes
           </h1>
           <p className="text-sm text-text-muted mt-2">
             Manage your generated quotes.

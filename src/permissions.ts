@@ -14,6 +14,7 @@ export type Permission =
   | "view_whatsapp_mgmt"
   | "revoke_whatsapp"
   | "manage_catalogs"
+  | "view_quotes"
   | "use_chat"
   | "use_whatsapp_personal";
 
@@ -24,6 +25,7 @@ export const ROLE_PERMISSIONS: Record<Role, Array<{ permission: Permission; scop
   user: [
     { permission: "edit_own_profile", scope: "own" },
     { permission: "view_own_org", scope: "own" },
+    { permission: "view_quotes", scope: "own_org" },
     { permission: "use_chat", scope: "own_org" },
     { permission: "use_whatsapp_personal", scope: "own_org" },
   ],
@@ -38,6 +40,7 @@ export const ROLE_PERMISSIONS: Record<Role, Array<{ permission: Permission; scop
     { permission: "view_knowledge", scope: "own_org" },
     { permission: "manage_knowledge", scope: "own_org" },
     { permission: "manage_catalogs", scope: "own_org" },
+    { permission: "view_quotes", scope: "own_org" },
     { permission: "use_chat", scope: "own_org" },
     { permission: "use_whatsapp_personal", scope: "own_org" },
   ],
@@ -57,6 +60,7 @@ export const ROLE_PERMISSIONS: Record<Role, Array<{ permission: Permission; scop
     { permission: "view_whatsapp_mgmt", scope: "all" },
     { permission: "revoke_whatsapp", scope: "all" },
     { permission: "manage_catalogs", scope: "all" },
+    { permission: "view_quotes", scope: "all" },
     { permission: "use_chat", scope: "all" },
     { permission: "use_whatsapp_personal", scope: "all" },
   ],
@@ -87,6 +91,7 @@ export const VIEW_PERMISSIONS: Record<string, Permission> = {
   users: "view_org_users",
   organizations: "view_all_orgs",
   catalogs: "manage_catalogs",
+  quotes: "view_quotes",
   "whatsapp-connections": "view_whatsapp_mgmt",
 };
 
