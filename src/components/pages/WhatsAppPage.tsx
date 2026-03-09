@@ -400,7 +400,7 @@ function NotEnabledContent({
         title="WhatsApp not enabled"
         description="Enable WhatsApp to connect your personal phone and chat with the AI agent directly from WhatsApp."
       />
-      <Button variant="primary" onClick={onEnable} loading={enabling}>
+      <Button variant="primary" onClick={() => onEnable()} loading={enabling}>
         Enable WhatsApp
       </Button>
     </div>
