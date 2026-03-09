@@ -110,8 +110,7 @@ export interface OrganizationDetail {
 
 export interface CreateOrganizationData {
   orgId: string;
-  adminUsername: string;
-  adminPassword: string;
+  adminEmail: string;
   slug?: string;
   name?: string;
   address?: string;

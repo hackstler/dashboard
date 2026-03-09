@@ -25,8 +25,7 @@ import { formatDate } from "../../utils/format";
 
 interface CreateFormState {
   orgId: string;
-  adminUsername: string;
-  adminPassword: string;
+  adminEmail: string;
   name: string;
   slug: string;
   address: string;
@@ -39,8 +38,7 @@ interface CreateFormState {
 
 const EMPTY_CREATE_FORM: CreateFormState = {
   orgId: "",
-  adminUsername: "",
-  adminPassword: "",
+  adminEmail: "",
   name: "",
   slug: "",
   address: "",
@@ -83,17 +81,11 @@ function OrgCreateModal({
           onChange={(e) => set("orgId", e.target.value)}
         />
         <Input
-          label="Admin Username"
+          label="Admin Email"
+          type="email"
           placeholder="admin@my-company.com"
-          value={form.adminUsername}
-          onChange={(e) => set("adminUsername", e.target.value)}
-        />
-        <Input
-          label="Admin Password"
-          type="password"
-          placeholder="Min 8 characters"
-          value={form.adminPassword}
-          onChange={(e) => set("adminPassword", e.target.value)}
+          value={form.adminEmail}
+          onChange={(e) => set("adminEmail", e.target.value)}
         />
 
         {/* Company details -- glass sub-surface */}
@@ -172,9 +164,7 @@ function OrgCreateModal({
             size="sm"
             onClick={onCreate}
             loading={creating}
-            disabled={
-              !form.orgId || !form.adminUsername || !form.adminPassword
-            }
+            disabled={!form.orgId || !form.adminEmail}
           >
             Create
           </Button>
@@ -269,8 +259,7 @@ export function OrganizationsPage() {
     try {
       await createOrganization({
         orgId: createForm.orgId,
-        adminUsername: createForm.adminUsername,
-        adminPassword: createForm.adminPassword,
+        adminEmail: createForm.adminEmail,
         ...(createForm.name && { name: createForm.name }),
         ...(createForm.slug && { slug: createForm.slug }),
         ...(createForm.address && { address: createForm.address }),
