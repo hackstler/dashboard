@@ -44,7 +44,7 @@ export function MyOrganizationPage() {
       <OrgEditPage
         orgId={org.orgId}
         isOwnOrg={true}
-        onBack={() => loadOrg()}
+        onBack={loadOrg}
         getOrganization={getOrganization}
         updateOrganization={updateOrganization}
       />

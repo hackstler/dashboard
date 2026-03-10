@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useApp } from "../../context/AppContext";
 import { usePermissions } from "../../hooks/usePermissions";
 import { useOrganizations } from "../../hooks/useOrganizations";
@@ -301,6 +301,8 @@ export function OrganizationsPage() {
     }
   };
 
+  const handleBackFromEdit = useCallback(() => setEditingOrgId(null), []);
+
   // ── Edit view ────────────────────────────────────────────────────────────
 
   if (editingOrgId) {
@@ -308,7 +310,7 @@ export function OrganizationsPage() {
       <OrgEditPage
         orgId={editingOrgId}
         isOwnOrg={can("edit_own_org")}
-        onBack={() => setEditingOrgId(null)}
+        onBack={handleBackFromEdit}
         getOrganization={getOrg}
         updateOrganization={updateOrg}
       />

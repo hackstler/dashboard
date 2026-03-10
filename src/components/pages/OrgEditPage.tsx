@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useApp } from "../../context/AppContext";
 import type { OrganizationDetail } from "../../types";
 import { Button } from "../ui/Button";
@@ -29,6 +29,10 @@ export function OrgEditPage({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Ref for onBack to avoid including it in useCallback deps (prevents re-fetch loops)
+  const onBackRef = useRef(onBack);
+  onBackRef.current = onBack;
+
   // Form state
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -58,11 +62,11 @@ export function OrgEditPage({
         err instanceof Error ? err.message : "Failed to load organization",
         "error"
       );
-      onBack();
+      onBackRef.current();
     } finally {
       setLoading(false);
     }
-  }, [orgId, getOrganization, addToast, onBack]);
+  }, [orgId, getOrganization, addToast]);
 
   useEffect(() => {
     loadOrg();
