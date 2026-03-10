@@ -194,7 +194,26 @@ export function CatalogPage() {
                         </td>
                         <td className="px-4 py-2.5 text-text-muted">{item.category ?? "—"}</td>
                         <td className="px-4 py-2.5 text-right text-text-bright font-mono">
-                          {Number(item.pricePerUnit).toFixed(2)}
+                          {item.priceRange ? (
+                            <div className="group relative">
+                              <span className="text-accent">
+                                Desde {Math.min(
+                                  item.priceRange.solado?.min ?? Infinity,
+                                  item.priceRange.tierra?.min ?? Infinity,
+                                ).toFixed(2)} €/m²
+                              </span>
+                              <div className="absolute right-0 top-full mt-1 z-10 hidden group-hover:block bg-surface-hi border border-border rounded-[var(--radius-md)] px-3 py-2 text-xs text-text-muted whitespace-nowrap shadow-lg">
+                                {item.priceRange.solado && (
+                                  <div>Solado: {item.priceRange.solado.min.toFixed(2)}–{item.priceRange.solado.max.toFixed(2)} €/m²</div>
+                                )}
+                                {item.priceRange.tierra && (
+                                  <div>Tierra: {item.priceRange.tierra.min.toFixed(2)}–{item.priceRange.tierra.max.toFixed(2)} €/m²</div>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            Number(item.pricePerUnit).toFixed(2)
+                          )}
                         </td>
                         <td className="px-4 py-2.5 text-text-muted">{item.unit}</td>
                         <td className="px-4 py-2.5 text-center">
@@ -602,6 +621,7 @@ function EditItemModal({
     isActive?: boolean;
   }) => Promise<void>;
 }) {
+  const hasVariablePricing = !!item.priceRange;
   const [name, setName] = useState(item.name);
   const [description, setDescription] = useState(item.description ?? "");
   const [category, setCategory] = useState(item.category ?? "");
@@ -617,7 +637,7 @@ function EditItemModal({
         name: name.trim(),
         description: description.trim() || null,
         category: category.trim() || null,
-        pricePerUnit: Number(price),
+        ...(hasVariablePricing ? {} : { pricePerUnit: Number(price) }),
         unit: unit.trim(),
         isActive,
       });
@@ -651,14 +671,26 @@ function EditItemModal({
             onChange={(e) => setUnit(e.target.value)}
           />
         </div>
-        <Input
-          label="Price per Unit"
-          type="number"
-          step="0.01"
-          min="0"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
+        {hasVariablePricing ? (
+          <div className="text-sm text-text-muted bg-surface-hi/50 border border-border rounded-[var(--radius-md)] px-3 py-2">
+            Precio variable según m² y tipo de suelo
+            {item.priceRange?.solado && (
+              <span className="block text-xs mt-1">Solado: {item.priceRange.solado.min.toFixed(2)}–{item.priceRange.solado.max.toFixed(2)} €/m²</span>
+            )}
+            {item.priceRange?.tierra && (
+              <span className="block text-xs">Tierra: {item.priceRange.tierra.min.toFixed(2)}–{item.priceRange.tierra.max.toFixed(2)} €/m²</span>
+            )}
+          </div>
+        ) : (
+          <Input
+            label="Price per Unit"
+            type="number"
+            step="0.01"
+            min="0"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+        )}
         <div className="flex items-center gap-2">
           <input
             type="checkbox"

@@ -176,6 +176,10 @@ export interface CatalogItemData {
   sortOrder: number;
   isActive: boolean;
   createdAt: string;
+  priceRange?: {
+    solado?: { min: number; max: number };
+    tierra?: { min: number; max: number };
+  } | null;
 }
 
 export interface CreateCatalogData {
